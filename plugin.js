@@ -53,16 +53,7 @@
       setParamValue: function () {},
       setInternal: function () {},
       call: function () {},
-      execActionCommand: function (
-        actionCommandIndex,
-        parameter,
-        objectId,
-        instanceId,
-        actionId,
-        commandId,
-        commonActionStatus,
-        sceneId
-      ) {
+      execActionCommand: function (actionCommandIndex, parameter, objectId, instanceId) {
         /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
         var actionCommand = plugin.getInfo('actionCommand')[actionCommandIndex],
           /** @type {Record<number,import("type-fest").JsonValue>} */
