@@ -28,7 +28,7 @@
           case 'internal':
             return null;
           case 'actionCommand':
-            return [cameraToWorldActionCommand];
+            return [cameraToWorldActionCommand, worldToCameraActionCommand];
           case 'linkCondition':
             return [];
           default:
@@ -45,7 +45,8 @@
         }
 
         window.kt.coordinates = {
-          cameraToWorld: cameraToWorld
+          cameraToWorld: cameraToWorld,
+          worldToCamera: worldToCamera
         };
       },
       finalize: function () {},
@@ -78,6 +79,16 @@
               np[actionCommand.parameter[5].id],
               instanceId
             );
+          case worldToCameraActionCommand.id:
+            return worldToCamera(
+              np[actionCommand.parameter[0].id],
+              np[actionCommand.parameter[1].id],
+              np[actionCommand.parameter[2].id],
+              np[actionCommand.parameter[3].id],
+              np[actionCommand.parameter[4].id],
+              np[actionCommand.parameter[5].id],
+              instanceId
+            );
           default:
             break;
         }
@@ -98,6 +109,60 @@
       id: 0,
       name: 'Camera to World [PGMMV Coordinates Plugin]',
       description: 'Convert variables from camera to world coordinates.',
+      parameter: [
+        {
+          id: 100,
+          name: 'Input Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Input X:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 1,
+          name: 'Input Y:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 101,
+          name: 'Output Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 2,
+          name: 'Output X:',
+          type: 'VariableId',
+          referenceId: 101,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 3,
+          name: 'Output Y:',
+          type: 'VariableId',
+          referenceId: 101,
+          withNewButton: true,
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
+    worldToCameraActionCommand = {
+      id: 1,
+      name: 'World to Camera [PGMMV Coordinates Plugin]',
+      description: 'Convert variables from world to camera coordinates.',
       parameter: [
         {
           id: 100,
@@ -249,6 +314,113 @@
           cameraRect = getCameraRect();
           outputXVariable.setValue(cameraRect.x + inputXVariable.getValue());
           outputYVariable.setValue(cameraRect.y + inputYVariable.getValue());
+        }
+      }
+
+      return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
+    },
+    /**
+     * @param inputVariableObjectId {
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
+     * }
+     * @param inputXVariableId {number}
+     * @param inputYVariableId {number}
+     * @param outputVariableObjectId {
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
+     * }
+     * @param outputXVariableId {number}
+     * @param outputYVariableId {number}
+     * @param instanceId {number}
+     * @returns {import("pgmmv-types/lib/agtk/constants/action-commands/command-behavior").AgtkCommandBehavior['CommandBehaviorNext']}
+     */
+    worldToCamera = function (
+      inputVariableObjectId,
+      inputXVariableId,
+      inputYVariableId,
+      outputVariableObjectId,
+      outputXVariableId,
+      outputYVariableId,
+      instanceId
+    ) {
+      var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
+        inputSource = resolveSwitchVariableObject(inputVariableObjectId, instanceId),
+        outputSource = resolveSwitchVariableObject(outputVariableObjectId, instanceId),
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        inputXVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        inputYVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        outputXVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        outputYVariable,
+        /** @type {import("pgmmv-types/lib/cc/rect").CCRect} */
+        cameraRect;
+
+      if (inputSource === Agtk.constants.actionCommands.UnsetObject) {
+        logWarning('world to camera: unset input variable source');
+      } else if (inputXVariableId < 1) {
+        logWarning('world to camera: invalid input x variable ID');
+      } else if (inputYVariableId < 1) {
+        logWarning('world to camera: invalid input y variable ID');
+      } else if (outputSource === Agtk.constants.actionCommands.UnsetObject) {
+        logWarning('world to camera: unset output variable source');
+      } else if (outputXVariableId < 1) {
+        logWarning('world to camera: invalid output x variable ID');
+      } else if (outputYVariableId < 1) {
+        logWarning('world to camera: invalid output y variable ID');
+      } else {
+        if (inputSource === projectCommon) {
+          inputXVariable = Agtk.variables.get(inputXVariableId);
+          inputYVariable = Agtk.variables.get(inputYVariableId);
+        } else {
+          inputXVariable = inputSource.variables.get(inputXVariableId);
+          inputYVariable = inputSource.variables.get(inputYVariableId);
+        }
+
+        if (outputSource === projectCommon) {
+          outputXVariable = Agtk.variables.get(outputXVariableId);
+          outputYVariable = Agtk.variables.get(outputYVariableId);
+        } else {
+          outputXVariable = outputSource.variables.get(outputXVariableId);
+          outputYVariable = outputSource.variables.get(outputYVariableId);
+        }
+
+        if (!inputXVariable) {
+          logWarning('world to camera: input x variable not found');
+        } else if (!inputYVariable) {
+          logWarning('world to camera: input y variable not found');
+        } else if (!outputXVariable) {
+          logWarning('world to camera: output x variable not found');
+        } else if (!outputYVariable) {
+          logWarning('world to camera: output y variable not found');
+        } else {
+          cameraRect = getCameraRect();
+          outputXVariable.setValue(inputXVariable.getValue() - cameraRect.x);
+          outputYVariable.setValue(inputYVariable.getValue() - cameraRect.y);
         }
       }
 
