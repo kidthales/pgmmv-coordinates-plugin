@@ -227,7 +227,7 @@
       parameter: [
         {
           id: 100,
-          name: 'Rectangle Variable Source:',
+          name: 'Rect Variable Source:',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
