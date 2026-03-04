@@ -30,7 +30,7 @@
           case 'actionCommand':
             return [cameraToWorldActionCommand, worldToCameraActionCommand];
           case 'linkCondition':
-            return [];
+            return [inRectLinkCondition];
           default:
             break;
         }
@@ -46,7 +46,8 @@
 
         window.kt.coordinates = {
           cameraToWorld: cameraToWorld,
-          worldToCamera: worldToCamera
+          worldToCamera: worldToCamera,
+          inRect: inRect
         };
       },
       finalize: function () {},
@@ -86,14 +87,28 @@
 
         return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
       },
-      execLinkCondition: function (
-        linkConditionIndex,
-        parameter,
-        objectId,
-        instanceId,
-        actionLinkId,
-        commonActionStatus
-      ) {}
+      execLinkCondition: function (linkConditionIndex, parameter, objectId, instanceId) {
+        /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+        var linkCondition = plugin.getInfo('linkCondition')[linkConditionIndex],
+          /** @type {Record<number,import("type-fest").JsonValue>} */
+          np = normalizeParameters(parameter, linkCondition.parameter);
+
+        switch (linkCondition.id) {
+          case inRectLinkCondition.id:
+            return inRect(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              np[linkCondition.parameter[3].id],
+              np[linkCondition.parameter[4].id],
+              instanceId
+            );
+          default:
+            break;
+        }
+
+        return false;
+      }
     },
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
     cameraToWorldActionCommand = {
@@ -198,6 +213,54 @@
           name: 'Output Y:',
           type: 'VariableId',
           referenceId: 101,
+          withNewButton: true,
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inRectLinkCondition = {
+      id: 0,
+      name: 'In Rectangle [PGMMV Coordinates Plugin]',
+      description:
+        'Test if object instance position is within rectangle. Rectangle x & y coordinates correspond to top left.',
+      parameter: [
+        {
+          id: 100,
+          name: 'Rectangle Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'X:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 1,
+          name: 'Y:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 2,
+          name: 'Width:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 3,
+          name: 'Height:',
+          type: 'VariableId',
+          referenceId: 100,
           withNewButton: true,
           defaultValue: -1
         }
@@ -416,6 +479,98 @@
       }
 
       return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
+    },
+    /**
+     * @param variableObjectId {
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
+     * }
+     * @param xVariableId {number}
+     * @param yVariableId {number}
+     * @param widthVariableId {number}
+     * @param heightVariableId {number}
+     * @param instanceId {number}
+     * @returns {boolean}
+     */
+    inRect = function (variableObjectId, xVariableId, yVariableId, widthVariableId, heightVariableId, instanceId) {
+      var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        xVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        yVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        widthVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        heightVariable,
+        /** @type {import("pgmmv-types/lib/agtk/object-instances/object-instance").AgtkObjectInstance} */
+        objectInstance;
+
+      if (source === Agtk.constants.actionCommands.UnsetObject) {
+        logWarning('in rectangle: unset variable source');
+      } else if (xVariableId < 1) {
+        logWarning('in rectangle: invalid x variable ID');
+      } else if (yVariableId < 1) {
+        logWarning('in rectangle: invalid y variable ID');
+      } else if (widthVariableId < 1) {
+        logWarning('in rectangle: invalid width variable ID');
+      } else if (heightVariableId < 1) {
+        logWarning('in rectangle: invalid height variable ID');
+      } else {
+        if (source === Agtk.constants.switchVariableObjects.ProjectCommon) {
+          xVariable = Agtk.variables.get(xVariableId);
+          yVariable = Agtk.variables.get(yVariableId);
+          widthVariable = Agtk.variables.get(widthVariableId);
+          heightVariable = Agtk.variables.get(heightVariableId);
+        } else {
+          xVariable = source.variables.get(xVariableId);
+          yVariable = source.variables.get(yVariableId);
+          widthVariable = source.variables.get(widthVariableId);
+          heightVariable = source.variables.get(heightVariableId);
+        }
+
+        if (!xVariable) {
+          logWarning('in rectangle: x variable not found');
+        } else if (!yVariable) {
+          logWarning('in rectangle: y variable not found');
+        } else if (!widthVariable) {
+          logWarning('in rectangle: width variable not found');
+        } else if (!heightVariable) {
+          logWarning('in rectangle: height variable not found');
+        } else {
+          objectInstance = Agtk.objectInstances.get(instanceId);
+
+          return cc.rectContainsPoint(
+            cc.rect(xVariable.getValue(), yVariable.getValue(), widthVariable.getValue(), heightVariable.getValue()),
+            cc.p(
+              objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
+              objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue()
+            )
+          );
+        }
+      }
+
+      return false;
     },
     /** @type {() => import("pgmmv-types/lib/cc/rect").CCRect} */
     getCameraRect = function () {
