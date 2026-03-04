@@ -1,3 +1,10 @@
+/**!
+ * @file PGMMV Coordinates Plugin
+ * @author Tristan Bonsor <kidthales@agogpixel.com>
+ * @copyright 2026 Tristan Bonsor
+ * @license {@link https://opensource.org/licenses/MIT MIT License}
+ * @version 0.1.0
+ */
 // noinspection ES6ConvertVarToLetConst
 (function () {
   // noinspection UnnecessaryLocalVariableJS
@@ -5,22 +12,21 @@
    * @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkPlugin}
    */
   var plugin = {
-      setLocale: function (locale) {},
-
+      setLocale: function () {},
       getInfo: function (category) {
         switch (category) {
           case 'name':
-            return 'PGMMV Plugin Template';
+            return 'PGMMV Coordinates Plugin';
           case 'description':
-            return 'PGMMV Plugin Template';
+            return 'Utilities for working with 2D coordinates.';
           case 'author':
-            return 'Author Name';
+            return 'Tristan Bonsor <kidthales@agogpixel.com>';
           case 'help':
-            return 'Plugin Help';
+            return '';
           case 'parameter':
             return [];
           case 'internal':
-            return {};
+            return null;
           case 'actionCommand':
             return [];
           case 'linkCondition':
@@ -29,33 +35,17 @@
             break;
         }
       },
-
-      initialize: function (data) {
+      initialize: function () {
         if (isEditor()) {
           return;
         }
 
         Agtk.log('Initialize ' + plugin.getInfo('name'));
       },
-
       finalize: function () {},
-
-      setParamValue: function (paramValue) {
-        if (isEditor()) {
-          return;
-        }
-
-        for (var i = 0; i < paramValue.length; ++i) {
-          Agtk.log('Parameter ' + paramValue[i].id + ' = ' + paramValue[i].value);
-        }
-      },
-
-      setInternal: function (data) {},
-
+      setParamValue: function () {},
+      setInternal: function () {},
       call: function () {},
-
-      update: function (delta) {},
-
       execActionCommand: function (
         actionCommandIndex,
         parameter,
@@ -66,7 +56,6 @@
         commonActionStatus,
         sceneId
       ) {},
-
       execLinkCondition: function (
         linkConditionIndex,
         parameter,

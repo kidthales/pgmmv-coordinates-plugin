@@ -1,7 +1,7 @@
 {
-  "name": "@kidthales/pgmmv-plugin-template",
+  "name": "@kidthales/pgmmv-coordinates-plugin",
   "version": "0.1.0",
-  "description": "Plugin template for PGMMV.",
+  "description": "A coordinates plugin for PGMMV.",
   "license": "MIT",
   "private": true,
   "scripts": {
