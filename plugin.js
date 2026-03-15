@@ -30,7 +30,7 @@
           case 'actionCommand':
             return [cameraToWorldActionCommand, worldToCameraActionCommand];
           case 'linkCondition':
-            return [inRectLinkCondition];
+            return [inRectLinkCondition, isTileMultipleLinkCondition];
           default:
             break;
         }
@@ -47,7 +47,8 @@
         window.kt.coordinates = {
           cameraToWorld: cameraToWorld,
           worldToCamera: worldToCamera,
-          inRect: inRect
+          inRect: inRect,
+          isTileMultiple: isTileMultiple
         };
       },
       finalize: function () {},
@@ -103,6 +104,8 @@
               np[linkCondition.parameter[4].id],
               instanceId
             );
+          case isTileMultipleLinkCondition.id:
+            return isTileMultiple(np[linkCondition.parameter[0].id], instanceId);
           default:
             break;
         }
@@ -110,6 +113,12 @@
         return false;
       }
     },
+    /** @type {number} */
+    kAxisX = 0,
+    /** @type {number} */
+    kAxisY = 1,
+    /** @type {number} */
+    kAxisBoth = 2,
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
     cameraToWorldActionCommand = {
       id: 0,
@@ -277,9 +286,9 @@
           name: 'Axis:',
           type: 'CustomId',
           customParam: [
-            { id: 0, name: 'X' },
-            { id: 1, name: 'Y' },
-            { id: 3, name: 'Both' }
+            { id: kAxisX, name: 'X' },
+            { id: kAxisY, name: 'Y' },
+            { id: kAxisBoth, name: 'Both' }
           ],
           defaultValue: -1
         }
@@ -590,6 +599,35 @@
       }
 
       return false;
+    },
+    /**
+     * @param axisCustomId {number}
+     * @param instanceId {number}
+     * @returns {boolean}
+     */
+    isTileMultiple = function (axisCustomId, instanceId) {
+      var objectInstance = Agtk.objectInstances.get(instanceId);
+
+      switch (axisCustomId) {
+        case kAxisX:
+          return (
+            objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth ===
+            0
+          );
+        case kAxisY:
+          return (
+            objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight ===
+            0
+          );
+        case kAxisBoth:
+        default:
+          break;
+      }
+
+      return (
+        objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth === 0 &&
+        objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight === 0
+      );
     },
     /** @type {() => import("pgmmv-types/lib/cc/rect").CCRect} */
     getCameraRect = function () {
