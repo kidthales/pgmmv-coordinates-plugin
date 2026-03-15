@@ -266,6 +266,25 @@
         }
       ]
     },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    isTileMultipleLinkCondition = {
+      id: 1,
+      name: 'Is Tile Multiple [PGMMV Coordinates Plugin]',
+      description: 'Test if object instance position is located at a multiple of the tile width or height.',
+      parameter: [
+        {
+          id: 0,
+          name: 'Axis:',
+          type: 'CustomId',
+          customParam: [
+            { id: 0, name: 'X' },
+            { id: 1, name: 'Y' },
+            { id: 3, name: 'Both' }
+          ],
+          defaultValue: -1
+        }
+      ]
+    },
     /**
      * @param inputVariableObjectId {
      *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
