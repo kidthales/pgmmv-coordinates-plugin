@@ -119,6 +119,18 @@
     kAxisY = 1,
     /** @type {number} */
     kAxisBoth = 2,
+    /** @type {number} */
+    kLt = 0,
+    /** @type {number} */
+    kLte = 1,
+    /** @type {number} */
+    kEq = 2,
+    /** @type {number} */
+    kGte = 3,
+    /** @type {number} */
+    kGt = 4,
+    /** @type {number} */
+    kNot = 5,
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
     cameraToWorldActionCommand = {
       id: 0,
@@ -290,6 +302,142 @@
             { id: kAxisY, name: 'Y' },
             { id: kAxisBoth, name: 'Both' }
           ],
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inTileLinkCondition = {
+      id: 0,
+      name: 'In Tile [PGMMV Coordinates Plugin]',
+      description:
+        'Test object position in current tile. Tile origin (0,0) is top left, (1,1) is bottom right, and (0.5, 0.5) is center (default).',
+      parameter: [
+        {
+          id: 100,
+          name: 'Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 10,
+          name: 'Comparison X:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Origin X:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 11,
+          name: 'Comparison Y:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 1,
+          name: 'Origin Y:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inTileHorizontalLinkCondition = {
+      id: 0,
+      name: 'In Tile (Horizontal) [PGMMV Coordinates Plugin]',
+      description:
+        'Test object position horizontally in current tile. Tile origin 0 is left, 1 is right, and 0.5 is center (default).',
+      parameter: [
+        {
+          id: 100,
+          name: 'Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 10,
+          name: 'Comparison X:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Origin X:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inTileVerticalLinkCondition = {
+      id: 0,
+      name: 'In Tile (Vertical) [PGMMV Coordinates Plugin]',
+      description:
+        'Test object position vertically in current tile. Tile origin 0 is top, 1 is bottom, and 0.5 is center (default).',
+      parameter: [
+        {
+          id: 100,
+          name: 'Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 10,
+          name: 'Comparison Y:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Origin Y:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
           defaultValue: -1
         }
       ]
