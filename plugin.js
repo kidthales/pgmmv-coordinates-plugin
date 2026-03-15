@@ -341,7 +341,7 @@
     },
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
     inTileLinkCondition = {
-      id: 0,
+      id: 2,
       name: 'In Tile [PGMMV Coordinates Plugin]',
       description:
         "Test object position in current tile. Tile origin (0,0) is top left, (1,1) is bottom right, and (0.5, 0.5) is center (default). The default comparator is '='.",
@@ -401,7 +401,7 @@
     },
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
     inTileHorizontalLinkCondition = {
-      id: 0,
+      id: 3,
       name: 'In Tile (Horizontal) [PGMMV Coordinates Plugin]',
       description:
         "Test object position horizontally in current tile. Tile origin 0 is left, 1 is right, and 0.5 is center (default). The default comparator is '='.",
@@ -439,7 +439,7 @@
     },
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
     inTileVerticalLinkCondition = {
-      id: 0,
+      id: 4,
       name: 'In Tile (Vertical) [PGMMV Coordinates Plugin]',
       description:
         "Test object position vertically in current tile. Tile origin 0 is top, 1 is bottom, and 0.5 is center (default). The default comparator is '='.",
