@@ -30,7 +30,13 @@
           case 'actionCommand':
             return [cameraToWorldActionCommand, worldToCameraActionCommand];
           case 'linkCondition':
-            return [inRectLinkCondition, isTileMultipleLinkCondition];
+            return [
+              inRectLinkCondition,
+              isTileMultipleLinkCondition,
+              inTileLinkCondition,
+              inTileHorizontalLinkCondition,
+              inTileVerticalLinkCondition
+            ];
           default:
             break;
         }
@@ -48,7 +54,10 @@
           cameraToWorld: cameraToWorld,
           worldToCamera: worldToCamera,
           inRect: inRect,
-          isTileMultiple: isTileMultiple
+          isTileMultiple: isTileMultiple,
+          inTile: inTile,
+          inTileHorizontal: inTileHorizontal,
+          inTileVertical: inTileVertical
         };
       },
       finalize: function () {},
@@ -106,6 +115,29 @@
             );
           case isTileMultipleLinkCondition.id:
             return isTileMultiple(np[linkCondition.parameter[0].id], instanceId);
+          case inTileLinkCondition.id:
+            return inTile(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              np[linkCondition.parameter[3].id],
+              np[linkCondition.parameter[4].id],
+              instanceId
+            );
+          case inTileHorizontalLinkCondition.id:
+            return inTileHorizontal(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              instanceId
+            );
+          case inTileVerticalLinkCondition.id:
+            return inTileVertical(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              instanceId
+            );
           default:
             break;
         }
@@ -113,12 +145,24 @@
         return false;
       }
     },
-    /** @type {number} */
+    /** @const */
     kAxisX = 0,
-    /** @type {number} */
+    /** @const */
     kAxisY = 1,
-    /** @type {number} */
+    /** @const */
     kAxisBoth = 2,
+    /** @const */
+    kLt = 0,
+    /** @const */
+    kLte = 1,
+    /** @const */
+    kEq = 2,
+    /** @const */
+    kGte = 3,
+    /** @const */
+    kGt = 4,
+    /** @const */
+    kNot = 5,
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
     cameraToWorldActionCommand = {
       id: 0,
@@ -279,7 +323,8 @@
     isTileMultipleLinkCondition = {
       id: 1,
       name: 'Is Tile Multiple [PGMMV Coordinates Plugin]',
-      description: 'Test if object instance position is located at a multiple of the tile width or height.',
+      description:
+        'Test if object instance position is located at a multiple of the tile width or height (default is both).',
       parameter: [
         {
           id: 0,
@@ -290,6 +335,142 @@
             { id: kAxisY, name: 'Y' },
             { id: kAxisBoth, name: 'Both' }
           ],
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inTileLinkCondition = {
+      id: 2,
+      name: 'In Tile [PGMMV Coordinates Plugin]',
+      description:
+        "Test object position in current tile. Tile origin (0,0) is top left, (1,1) is bottom right, and (0.5, 0.5) is center (default). The default comparator is '='.",
+      parameter: [
+        {
+          id: 100,
+          name: 'Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 10,
+          name: 'Comparison X:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Origin X:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        },
+        {
+          id: 11,
+          name: 'Comparison Y:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 1,
+          name: 'Origin Y:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inTileHorizontalLinkCondition = {
+      id: 3,
+      name: 'In Tile (Horizontal) [PGMMV Coordinates Plugin]',
+      description:
+        "Test object position horizontally in current tile. Tile origin 0 is left, 1 is right, and 0.5 is center (default). The default comparator is '='.",
+      parameter: [
+        {
+          id: 100,
+          name: 'Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 10,
+          name: 'Comparison X:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Origin X:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
+          defaultValue: -1
+        }
+      ]
+    },
+    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    inTileVerticalLinkCondition = {
+      id: 4,
+      name: 'In Tile (Vertical) [PGMMV Coordinates Plugin]',
+      description:
+        "Test object position vertically in current tile. Tile origin 0 is top, 1 is bottom, and 0.5 is center (default). The default comparator is '='.",
+      parameter: [
+        {
+          id: 100,
+          name: 'Variable Source:',
+          type: 'SwitchVariableObjectId',
+          option: ['SelfObject', 'ParentObject'],
+          defaultValue: -1
+        },
+        {
+          id: 10,
+          name: 'Comparison Y:',
+          type: 'CustomId',
+          customParam: [
+            { id: kLt, name: '<' },
+            { id: kLte, name: '<=' },
+            { id: kEq, name: '=' },
+            { id: kGte, name: '>=' },
+            { id: kGt, name: '>' },
+            { id: kNot, name: '!=' }
+          ],
+          defaultValue: -1
+        },
+        {
+          id: 0,
+          name: 'Origin Y:',
+          type: 'VariableId',
+          referenceId: 100,
+          withNewButton: true,
           defaultValue: -1
         }
       ]
@@ -628,6 +809,245 @@
         objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth === 0 &&
         objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight === 0
       );
+    },
+    /**
+     * @param variableObjectId {
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
+     * }
+     * @param comparisonXCustomId {number}
+     * @param originXVariableId {number}
+     * @param comparisonYCustomId {number}
+     * @param originYVariableId {number}
+     * @param instanceId {number}
+     * @returns {boolean}
+     */
+    inTile = function (
+      variableObjectId,
+      comparisonXCustomId,
+      originXVariableId,
+      comparisonYCustomId,
+      originYVariableId,
+      instanceId
+    ) {
+      var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
+        source = resolveSwitchVariableObject(variableObjectId, instanceId),
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        originXVariable,
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        originYVariable,
+        /** @type {number} */
+        originX,
+        /** @type {number} */
+        originY,
+        objectInstance = Agtk.objectInstances.get(instanceId),
+        x = objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
+        /** @type {number} */
+        y,
+        tileWidth = Agtk.settings.tileWidth,
+        /** @type {number} */
+        tileHeight,
+        /** @type {number} */
+        compareX,
+        /** @type {number} */
+        compareY,
+        /** @type {boolean} */
+        testX;
+
+      if (source === Agtk.constants.actionCommands.UnsetObject) {
+        originX = originY = 0.5;
+      } else {
+        if (originXVariableId < 1) {
+          originX = 0.5;
+        }
+
+        if (originYVariableId < 1) {
+          originY = 0.5;
+        }
+      }
+
+      if (originX === undefined) {
+        originXVariable = (source === projectCommon ? Agtk : source).variables.get(originXVariableId);
+        originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
+      }
+
+      compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
+
+      switch (comparisonXCustomId) {
+        case kLt:
+          testX = x < compareX;
+          break;
+        case kLte:
+          testX = x <= compareX;
+          break;
+        case kGte:
+          testX = x >= compareX;
+          break;
+        case kGt:
+          testX = x > compareX;
+          break;
+        case kNot:
+          testX = x !== compareX;
+          break;
+        case kEq:
+        default:
+          testX = x === compareX;
+          break;
+      }
+
+      if (!testX) {
+        return false;
+      }
+
+      if (originY === undefined) {
+        originYVariable = (source === projectCommon ? Agtk : source).variables.get(originYVariableId);
+        originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
+      }
+
+      y = objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue();
+      tileHeight = Agtk.settings.tileHeight;
+      compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
+
+      switch (comparisonYCustomId) {
+        case kLt:
+          return y < compareY;
+        case kLte:
+          return y <= compareY;
+        case kGte:
+          return y >= compareY;
+        case kGt:
+          return y > compareY;
+        case kNot:
+          return y !== compareY;
+        case kEq:
+        default:
+          break;
+      }
+
+      return y === compareY;
+    },
+    /**
+     * @param variableObjectId {
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
+     * }
+     * @param comparisonXCustomId {number}
+     * @param originXVariableId {number}
+     * @param instanceId {number}
+     * @returns {boolean}
+     */
+    inTileHorizontal = function (variableObjectId, comparisonXCustomId, originXVariableId, instanceId) {
+      var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        originXVariable,
+        /** @type {number} */
+        originX,
+        x = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.XId).getValue(),
+        tileWidth = Agtk.settings.tileWidth,
+        /** @type {number} */
+        compareX;
+
+      if (source === Agtk.constants.actionCommands.UnsetObject || originXVariableId < 1) {
+        originX = 0.5;
+      } else {
+        originXVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
+          originXVariableId
+        );
+        originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
+      }
+
+      compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
+
+      switch (comparisonXCustomId) {
+        case kLt:
+          return x < compareX;
+        case kLte:
+          return x <= compareX;
+        case kGte:
+          return x >= compareX;
+        case kGt:
+          return x > compareX;
+        case kNot:
+          return x !== compareX;
+        case kEq:
+        default:
+          break;
+      }
+
+      return x === compareX;
+    },
+    /**
+     * @param variableObjectId {
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
+     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
+     * }
+     * @param comparisonYCustomId {number}
+     * @param originYVariableId {number}
+     * @param instanceId {number}
+     * @returns {boolean}
+     */
+    inTileVertical = function (variableObjectId, comparisonYCustomId, originYVariableId, instanceId) {
+      var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+        /**
+         * @type {
+         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
+         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
+         * }
+         */
+        originYVariable,
+        /** @type {number} */
+        originY,
+        y = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.YId).getValue(),
+        tileHeight = Agtk.settings.tileHeight,
+        /** @type {number} */
+        compareY;
+
+      if (source === Agtk.constants.actionCommands.UnsetObject || originYVariableId < 1) {
+        originY = 0.5;
+      } else {
+        originYVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
+          originYVariableId
+        );
+        originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
+      }
+
+      compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
+
+      switch (comparisonYCustomId) {
+        case kLt:
+          return y < compareY;
+        case kLte:
+          return y <= compareY;
+        case kGte:
+          return y >= compareY;
+        case kGt:
+          return y > compareY;
+        case kNot:
+          return y !== compareY;
+        case kEq:
+        default:
+          break;
+      }
+
+      return y === compareY;
     },
     /** @type {() => import("pgmmv-types/lib/cc/rect").CCRect} */
     getCameraRect = function () {
