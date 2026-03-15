@@ -30,7 +30,13 @@
           case 'actionCommand':
             return [cameraToWorldActionCommand, worldToCameraActionCommand];
           case 'linkCondition':
-            return [inRectLinkCondition, isTileMultipleLinkCondition];
+            return [
+              inRectLinkCondition,
+              isTileMultipleLinkCondition,
+              inTileLinkCondition,
+              inTileHorizontalLinkCondition,
+              inTileVerticalLinkCondition
+            ];
           default:
             break;
         }
@@ -48,7 +54,10 @@
           cameraToWorld: cameraToWorld,
           worldToCamera: worldToCamera,
           inRect: inRect,
-          isTileMultiple: isTileMultiple
+          isTileMultiple: isTileMultiple,
+          inTile: inTile,
+          inTileHorizontal: inTileHorizontal,
+          inTileVertical: inTileVertical
         };
       },
       finalize: function () {},
@@ -106,6 +115,29 @@
             );
           case isTileMultipleLinkCondition.id:
             return isTileMultiple(np[linkCondition.parameter[0].id], instanceId);
+          case inTileLinkCondition.id:
+            return inTile(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              np[linkCondition.parameter[3].id],
+              np[linkCondition.parameter[4].id],
+              instanceId
+            );
+          case inTileHorizontalLinkCondition.id:
+            return inTileHorizontal(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              instanceId
+            );
+          case inTileVerticalLinkCondition.id:
+            return inTileVertical(
+              np[linkCondition.parameter[0].id],
+              np[linkCondition.parameter[1].id],
+              np[linkCondition.parameter[2].id],
+              instanceId
+            );
           default:
             break;
         }
