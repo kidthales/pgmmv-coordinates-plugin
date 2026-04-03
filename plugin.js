@@ -18,11 +18,28 @@
           case 'name':
             return 'PGMMV Coordinates Plugin';
           case 'description':
-            return 'Utilities for working with 2D coordinates.';
+            return 'Utilities for working with object coordinates.';
           case 'author':
             return 'Tristan Bonsor <kidthales@agogpixel.com>';
           case 'help':
-            return '';
+            return (
+              'This plugin provides utilities for working with 2D coordinates. Convert x and y\n' +
+              'values to/from camera space and world space; test an object for positioning\n' +
+              'within a tile or rectangle.\n' +
+              '\n' +
+              "'In Tile' link condition quick reference:\n" +
+              '|--------------|------------|------------|------------|------------|\n' +
+              '|   Location   | X-Axis Cmp | X-Axis Val | Y-Axis Cmp | Y-Axis Val |\n' +
+              '|--------------|------------|------------|------------|------------|\n' +
+              '| Top Left     |     <      |    0.5     |     <      |    0.5     |\n' +
+              '| Top          |    n/a     |    n/a     |     <      |    0.5     |\n' +
+              '| Top Right    |     >      |    0.5     |     <      |    0.5     |\n' +
+              '| Right        |     >      |    0.5     |    n/a     |    n/a     |\n' +
+              '| Bottom Right |     >      |    0.5     |     >      |    0.5     |\n' +
+              '| Bottom       |    n/a     |    n/a     |     >      |    0.5     |\n' +
+              '| Bottom Left  |     <      |    0.5     |     >      |    0.5     |\n' +
+              '| Left         |     <      |    0.5     |    n/a     |    n/a     |\n'
+            );
           case 'parameter':
             return [];
           case 'internal':
@@ -171,14 +188,14 @@
       parameter: [
         {
           id: 100,
-          name: 'Input Variable Source:',
+          name: 'Input Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 0,
-          name: 'Input X:',
+          name: 'Input X',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -186,7 +203,7 @@
         },
         {
           id: 1,
-          name: 'Input Y:',
+          name: 'Input Y',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -194,14 +211,14 @@
         },
         {
           id: 101,
-          name: 'Output Variable Source:',
+          name: 'Output Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 2,
-          name: 'Output X:',
+          name: 'Output X',
           type: 'VariableId',
           referenceId: 101,
           withNewButton: true,
@@ -209,7 +226,7 @@
         },
         {
           id: 3,
-          name: 'Output Y:',
+          name: 'Output Y',
           type: 'VariableId',
           referenceId: 101,
           withNewButton: true,
@@ -225,14 +242,14 @@
       parameter: [
         {
           id: 100,
-          name: 'Input Variable Source:',
+          name: 'Input Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 0,
-          name: 'Input X:',
+          name: 'Input X',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -240,7 +257,7 @@
         },
         {
           id: 1,
-          name: 'Input Y:',
+          name: 'Input Y',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -248,14 +265,14 @@
         },
         {
           id: 101,
-          name: 'Output Variable Source:',
+          name: 'Output Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 2,
-          name: 'Output X:',
+          name: 'Output X',
           type: 'VariableId',
           referenceId: 101,
           withNewButton: true,
@@ -263,7 +280,7 @@
         },
         {
           id: 3,
-          name: 'Output Y:',
+          name: 'Output Y',
           type: 'VariableId',
           referenceId: 101,
           withNewButton: true,
@@ -280,14 +297,14 @@
       parameter: [
         {
           id: 100,
-          name: 'Rect Variable Source:',
+          name: 'Rect Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 0,
-          name: 'X:',
+          name: 'X',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -295,7 +312,7 @@
         },
         {
           id: 1,
-          name: 'Y:',
+          name: 'Y',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -303,7 +320,7 @@
         },
         {
           id: 2,
-          name: 'Width:',
+          name: 'Width',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -311,7 +328,7 @@
         },
         {
           id: 3,
-          name: 'Height:',
+          name: 'Height',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -328,7 +345,7 @@
       parameter: [
         {
           id: 0,
-          name: 'Axis:',
+          name: 'Axis',
           type: 'CustomId',
           customParam: [
             { id: kAxisX, name: 'X' },
@@ -348,14 +365,14 @@
       parameter: [
         {
           id: 100,
-          name: 'Variable Source:',
+          name: 'Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 10,
-          name: 'Comparison X:',
+          name: 'Comparison X',
           type: 'CustomId',
           customParam: [
             { id: kLt, name: '<' },
@@ -369,7 +386,7 @@
         },
         {
           id: 0,
-          name: 'Origin X:',
+          name: 'Origin X',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -377,7 +394,7 @@
         },
         {
           id: 11,
-          name: 'Comparison Y:',
+          name: 'Comparison Y',
           type: 'CustomId',
           customParam: [
             { id: kLt, name: '<' },
@@ -391,7 +408,7 @@
         },
         {
           id: 1,
-          name: 'Origin Y:',
+          name: 'Origin Y',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -408,14 +425,14 @@
       parameter: [
         {
           id: 100,
-          name: 'Variable Source:',
+          name: 'Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 10,
-          name: 'Comparison X:',
+          name: 'Comparison X',
           type: 'CustomId',
           customParam: [
             { id: kLt, name: '<' },
@@ -429,7 +446,7 @@
         },
         {
           id: 0,
-          name: 'Origin X:',
+          name: 'Origin X',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
@@ -446,14 +463,14 @@
       parameter: [
         {
           id: 100,
-          name: 'Variable Source:',
+          name: 'Variable Source',
           type: 'SwitchVariableObjectId',
           option: ['SelfObject', 'ParentObject'],
           defaultValue: -1
         },
         {
           id: 10,
-          name: 'Comparison Y:',
+          name: 'Comparison Y',
           type: 'CustomId',
           customParam: [
             { id: kLt, name: '<' },
@@ -467,7 +484,7 @@
         },
         {
           id: 0,
-          name: 'Origin Y:',
+          name: 'Origin Y',
           type: 'VariableId',
           referenceId: 100,
           withNewButton: true,
