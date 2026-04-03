@@ -49,7 +49,7 @@
           case 'linkCondition':
             return [
               inRectLinkCondition,
-              isTileMultipleLinkCondition,
+              onTileEdgeLinkCondition,
               inTileLinkCondition,
               inTileHorizontalLinkCondition,
               inTileVerticalLinkCondition
@@ -71,7 +71,7 @@
           cameraToWorld: cameraToWorld,
           worldToCamera: worldToCamera,
           inRect: inRect,
-          isTileMultiple: isTileMultiple,
+          onTileEdge: onTileEdge,
           inTile: inTile,
           inTileHorizontal: inTileHorizontal,
           inTileVertical: inTileVertical
@@ -130,8 +130,8 @@
               np[linkCondition.parameter[4].id],
               instanceId
             );
-          case isTileMultipleLinkCondition.id:
-            return isTileMultiple(np[linkCondition.parameter[0].id], instanceId);
+          case onTileEdgeLinkCondition.id:
+            return onTileEdge(np[linkCondition.parameter[0].id], instanceId);
           case inTileLinkCondition.id:
             return inTile(
               np[linkCondition.parameter[0].id],
@@ -337,11 +337,11 @@
       ]
     },
     /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
-    isTileMultipleLinkCondition = {
+    onTileEdgeLinkCondition = {
       id: 1,
-      name: 'Is Tile Multiple [PGMMV Coordinates Plugin]',
+      name: 'On Tile Edge [PGMMV Coordinates Plugin]',
       description:
-        'Test if object instance position is located at a multiple of the tile width or height (default is both).',
+        'Test if object instance position is located at a tile edge, along the x or y axis (default is both).',
       parameter: [
         {
           id: 0,
@@ -803,7 +803,7 @@
      * @param instanceId {number}
      * @returns {boolean}
      */
-    isTileMultiple = function (axisCustomId, instanceId) {
+    onTileEdge = function (axisCustomId, instanceId) {
       var objectInstance = Agtk.objectInstances.get(instanceId);
 
       switch (axisCustomId) {
