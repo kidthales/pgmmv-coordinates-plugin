@@ -18,9 +18,9 @@
    * @typedef {import("@kidthales/pgmmv-types").AgtkPluginInfoResult<'actionCommand'>} AgtkActionCommandList
    * @typedef {import("@kidthales/pgmmv-types").AgtkPluginInfoResult<'linkCondition'>} AgtkLinkConditionList
    * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['switchVariableObjects']['ProjectCommon']} AgtkProjectCommon
-   * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['switchVariableObjects']['ProjectCommon' | 'SelfObject' | 'ParentObject']} SwitchVariableObjectId
    * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['actionCommands']['commandBehavior']['CommandBehaviorNext']} AgtkCommandBehaviorNext
    * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['actionCommands']['UnsetObject']} AgtkUnsetObject
+   * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['switchVariableObjects']['ProjectCommon' | 'SelfObject' | 'ParentObject'] | AgtkUnsetObject} SwitchVariableObjectId
    * @typedef {ReturnType<import("@kidthales/pgmmv-types").Agtk['variables']['get']> | ReturnType<ReturnType<import("@kidthales/pgmmv-types").Agtk['objectInstances']['get']>['variables']['get']>} AgtkVariable
    * @typedef {ReturnType<import("@kidthales/pgmmv-types").Agtk['objectInstances']['get']>} AgtkObjectInstance
    * @typedef {ReturnType<import("@kidthales/pgmmv-types").cc['rect']>} CCRect
@@ -100,30 +100,36 @@
     setInternal: function () {},
     call: function () {},
     execActionCommand: function (actionCommandIndex, parameter, objectId, instanceId) {
-      /** @type {AgtkActionCommand} */
+      /** @type {AgtkActionCommand | undefined} */
       var actionCommand = /** @type {AgtkActionCommandList} */ (plugin.getInfo('actionCommand'))[actionCommandIndex],
         /** @type {Record<number, JsonValue>} */
-        np = normalizeParameters(parameter, actionCommand.parameter);
+        np;
+
+      if (!actionCommand) {
+        return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
+      }
+
+      np = normalizeParameters(parameter, actionCommand.parameter);
 
       switch (actionCommand.id) {
         case cameraToWorldActionCommand.id:
           return cameraToWorld(
-            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[0].id]),
-            /** @type {number} */ (np[actionCommand.parameter[1].id]),
-            /** @type {number} */ (np[actionCommand.parameter[2].id]),
-            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[3].id]),
-            /** @type {number} */ (np[actionCommand.parameter[4].id]),
-            /** @type {number} */ (np[actionCommand.parameter[5].id]),
+            toSwitchVariableObjectId(np[actionCommand.parameter[0].id]),
+            toNumber(np[actionCommand.parameter[1].id]),
+            toNumber(np[actionCommand.parameter[2].id]),
+            toSwitchVariableObjectId(np[actionCommand.parameter[3].id]),
+            toNumber(np[actionCommand.parameter[4].id]),
+            toNumber(np[actionCommand.parameter[5].id]),
             instanceId
           );
         case worldToCameraActionCommand.id:
           return worldToCamera(
-            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[0].id]),
-            /** @type {number} */ (np[actionCommand.parameter[1].id]),
-            /** @type {number} */ (np[actionCommand.parameter[2].id]),
-            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[3].id]),
-            /** @type {number} */ (np[actionCommand.parameter[4].id]),
-            /** @type {number} */ (np[actionCommand.parameter[5].id]),
+            toSwitchVariableObjectId(np[actionCommand.parameter[0].id]),
+            toNumber(np[actionCommand.parameter[1].id]),
+            toNumber(np[actionCommand.parameter[2].id]),
+            toSwitchVariableObjectId(np[actionCommand.parameter[3].id]),
+            toNumber(np[actionCommand.parameter[4].id]),
+            toNumber(np[actionCommand.parameter[5].id]),
             instanceId
           );
         default:
@@ -133,44 +139,50 @@
       return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
     },
     execLinkCondition: function (linkConditionIndex, parameter, objectId, instanceId) {
-      /** @type {AgtkLinkCondition} */
+      /** @type {AgtkLinkCondition | undefined} */
       var linkCondition = /** @type {AgtkLinkConditionList} */ (plugin.getInfo('linkCondition'))[linkConditionIndex],
         /** @type {Record<number, JsonValue>} */
-        np = normalizeParameters(parameter, linkCondition.parameter);
+        np;
+
+      if (!linkCondition) {
+        return false;
+      }
+
+      np = normalizeParameters(parameter, linkCondition.parameter);
 
       switch (linkCondition.id) {
         case inRectLinkCondition.id:
           return inRect(
-            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
-            /** @type {number} */ (np[linkCondition.parameter[1].id]),
-            /** @type {number} */ (np[linkCondition.parameter[2].id]),
-            /** @type {number} */ (np[linkCondition.parameter[3].id]),
-            /** @type {number} */ (np[linkCondition.parameter[4].id]),
+            toSwitchVariableObjectId(np[linkCondition.parameter[0].id]),
+            toNumber(np[linkCondition.parameter[1].id]),
+            toNumber(np[linkCondition.parameter[2].id]),
+            toNumber(np[linkCondition.parameter[3].id]),
+            toNumber(np[linkCondition.parameter[4].id]),
             instanceId
           );
         case onTileEdgeLinkCondition.id:
-          return onTileEdge(/** @type {number} */ (np[linkCondition.parameter[0].id]), instanceId);
+          return onTileEdge(toNumber(np[linkCondition.parameter[0].id]), instanceId);
         case inTileLinkCondition.id:
           return inTile(
-            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
-            /** @type {number} */ (np[linkCondition.parameter[1].id]),
-            /** @type {number} */ (np[linkCondition.parameter[2].id]),
-            /** @type {number} */ (np[linkCondition.parameter[3].id]),
-            /** @type {number} */ (np[linkCondition.parameter[4].id]),
+            toSwitchVariableObjectId(np[linkCondition.parameter[0].id]),
+            toNumber(np[linkCondition.parameter[1].id]),
+            toNumber(np[linkCondition.parameter[2].id]),
+            toNumber(np[linkCondition.parameter[3].id]),
+            toNumber(np[linkCondition.parameter[4].id]),
             instanceId
           );
         case inTileHorizontalLinkCondition.id:
           return inTileHorizontal(
-            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
-            /** @type {number} */ (np[linkCondition.parameter[1].id]),
-            /** @type {number} */ (np[linkCondition.parameter[2].id]),
+            toSwitchVariableObjectId(np[linkCondition.parameter[0].id]),
+            toNumber(np[linkCondition.parameter[1].id]),
+            toNumber(np[linkCondition.parameter[2].id]),
             instanceId
           );
         case inTileVerticalLinkCondition.id:
           return inTileVertical(
-            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
-            /** @type {number} */ (np[linkCondition.parameter[1].id]),
-            /** @type {number} */ (np[linkCondition.parameter[2].id]),
+            toSwitchVariableObjectId(np[linkCondition.parameter[0].id]),
+            toNumber(np[linkCondition.parameter[1].id]),
+            toNumber(np[linkCondition.parameter[2].id]),
             instanceId
           );
         default:
@@ -787,16 +799,10 @@
     originYVariableId,
     instanceId
   ) {
-    var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
-      source = resolveSwitchVariableObject(variableObjectId, instanceId),
-      /** @type {AgtkVariable} */
-      originXVariable,
-      /** @type {AgtkVariable} */
-      originYVariable,
-      /** @type {number | undefined} */
-      originX = undefined,
-      /** @type {number | undefined} */
-      originY = undefined,
+    var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+      originX = resolveTileOrigin(source, originXVariableId),
+      /** @type {number} */
+      originY,
       objectInstance = Agtk.objectInstances.get(instanceId),
       x = objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
       /** @type {number} */
@@ -804,35 +810,11 @@
       tileWidth = Agtk.settings.tileWidth,
       /** @type {number} */
       tileHeight,
-      /** @type {number} */
-      compareX,
+      compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth,
       /** @type {number} */
       compareY,
       /** @type {boolean} */
       testX;
-
-    if (source === Agtk.constants.actionCommands.UnsetObject) {
-      originX = originY = 0.5;
-    } else {
-      if (originXVariableId < 1) {
-        originX = 0.5;
-      }
-
-      if (originYVariableId < 1) {
-        originY = 0.5;
-      }
-    }
-
-    if (originX === undefined) {
-      if (source === Agtk.constants.actionCommands.UnsetObject) {
-        originX = 0.5;
-      } else {
-        originXVariable = (source === projectCommon ? Agtk : source).variables.get(originXVariableId);
-        originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
-      }
-    }
-
-    compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
 
     switch (comparisonXCustomId) {
       case kLt:
@@ -860,15 +842,7 @@
       return false;
     }
 
-    if (originY === undefined) {
-      if (source === Agtk.constants.actionCommands.UnsetObject) {
-        originY = 0.5;
-      } else {
-        originYVariable = (source === projectCommon ? Agtk : source).variables.get(originYVariableId);
-        originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
-      }
-    }
-
+    originY = resolveTileOrigin(source, originYVariableId);
     y = objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue();
     tileHeight = Agtk.settings.tileHeight;
     compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
@@ -901,25 +875,10 @@
    */
   var inTileHorizontal = function (variableObjectId, comparisonXCustomId, originXVariableId, instanceId) {
     var source = resolveSwitchVariableObject(variableObjectId, instanceId),
-      /** @type {AgtkVariable} */
-      originXVariable,
-      /** @type {number} */
-      originX,
+      originX = resolveTileOrigin(source, originXVariableId),
       x = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.XId).getValue(),
       tileWidth = Agtk.settings.tileWidth,
-      /** @type {number} */
-      compareX;
-
-    if (source === Agtk.constants.actionCommands.UnsetObject || originXVariableId < 1) {
-      originX = 0.5;
-    } else {
-      originXVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
-        originXVariableId
-      );
-      originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
-    }
-
-    compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
+      compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
 
     switch (comparisonXCustomId) {
       case kLt:
@@ -949,25 +908,10 @@
    */
   var inTileVertical = function (variableObjectId, comparisonYCustomId, originYVariableId, instanceId) {
     var source = resolveSwitchVariableObject(variableObjectId, instanceId),
-      /** @type {AgtkVariable} */
-      originYVariable,
-      /** @type {number} */
-      originY,
+      originY = resolveTileOrigin(source, originYVariableId),
       y = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.YId).getValue(),
       tileHeight = Agtk.settings.tileHeight,
-      /** @type {number} */
-      compareY;
-
-    if (source === Agtk.constants.actionCommands.UnsetObject || originYVariableId < 1) {
-      originY = 0.5;
-    } else {
-      originYVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
-        originYVariableId
-      );
-      originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
-    }
-
-    compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
+      compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
 
     switch (comparisonYCustomId) {
       case kLt:
@@ -1041,7 +985,51 @@
    * @returns {boolean}
    */
   var isEditor = function () {
-    return !Agtk || typeof Agtk.log !== 'function';
+    return typeof Agtk === 'undefined' || !Agtk || typeof Agtk.log !== 'function';
+  };
+
+  /**
+   * @param {JsonValue} value
+   * @returns {SwitchVariableObjectId}
+   */
+  var toSwitchVariableObjectId = function (value) {
+    if (
+      value === Agtk.constants.switchVariableObjects.ProjectCommon ||
+      value === Agtk.constants.switchVariableObjects.SelfObject ||
+      value === Agtk.constants.switchVariableObjects.ParentObject
+    ) {
+      return value;
+    }
+
+    return Agtk.constants.actionCommands.UnsetObject;
+  };
+
+  /**
+   * @param {JsonValue} value
+   * @returns {number}
+   */
+  var toNumber = function (value) {
+    return typeof value === 'number' ? value : -1;
+  };
+
+  /**
+   * @param {AgtkObjectInstance | AgtkProjectCommon | AgtkUnsetObject} source
+   * @param {number} originVariableId
+   * @returns {number}
+   */
+  var resolveTileOrigin = function (source, originVariableId) {
+    /** @type {AgtkVariable} */
+    var originVariable;
+
+    if (source === Agtk.constants.actionCommands.UnsetObject || originVariableId < 1) {
+      return 0.5;
+    }
+
+    originVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
+      originVariableId
+    );
+
+    return !originVariable ? 0.5 : cc.clampf(originVariable.getValue(), 0, 1);
   };
 
   /**

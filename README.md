@@ -24,3 +24,9 @@ PGMMV plugins must conform to the [ECMAScript 5 specification](https://262.ecma-
 
 - `npm run lint` (Report errors)
 - `npm run lint-fix` (Fix errors)
+
+## Build
+
+Generate a stripped, formatted release bundle in `dist/`:
+
+- `npm run build`
