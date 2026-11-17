@@ -5,165 +5,184 @@
  * @license {@link https://opensource.org/licenses/MIT MIT License}
  * @version 0.2.0
  */
+/// <reference types="@kidthales/pgmmv-types/pgmmv.d.ts" />
 // noinspection ES6ConvertVarToLetConst
 (function () {
+  /**
+   * @typedef {import("@kidthales/pgmmv-types").AgtkPlugin} AgtkPlugin
+   * @typedef {import("@kidthales/pgmmv-types").AgtkActionCommand} AgtkActionCommand
+   * @typedef {import("@kidthales/pgmmv-types").AgtkLinkCondition} AgtkLinkCondition
+   * @typedef {import("@kidthales/pgmmv-types").AgtkParameter} AgtkParameter
+   * @typedef {import("@kidthales/pgmmv-types").AgtkParameterValue} AgtkParameterValue
+   * @typedef {import("@kidthales/pgmmv-types").AgtkParameterValue['value']} JsonValue
+   * @typedef {import("@kidthales/pgmmv-types").AgtkPluginInfoResult<'actionCommand'>} AgtkActionCommandList
+   * @typedef {import("@kidthales/pgmmv-types").AgtkPluginInfoResult<'linkCondition'>} AgtkLinkConditionList
+   * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['switchVariableObjects']['ProjectCommon']} AgtkProjectCommon
+   * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['switchVariableObjects']['ProjectCommon' | 'SelfObject' | 'ParentObject']} SwitchVariableObjectId
+   * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['actionCommands']['commandBehavior']['CommandBehaviorNext']} AgtkCommandBehaviorNext
+   * @typedef {import("@kidthales/pgmmv-types").Agtk['constants']['actionCommands']['UnsetObject']} AgtkUnsetObject
+   * @typedef {ReturnType<import("@kidthales/pgmmv-types").Agtk['variables']['get']> | ReturnType<ReturnType<import("@kidthales/pgmmv-types").Agtk['objectInstances']['get']>['variables']['get']>} AgtkVariable
+   * @typedef {ReturnType<import("@kidthales/pgmmv-types").Agtk['objectInstances']['get']>} AgtkObjectInstance
+   * @typedef {ReturnType<import("@kidthales/pgmmv-types").cc['rect']>} CCRect
+   */
   // noinspection UnnecessaryLocalVariableJS
   /**
-   * @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkPlugin}
+   * @type {AgtkPlugin}
    */
   var plugin = {
-      setLocale: function () {},
-      getInfo: function (category) {
-        switch (category) {
-          case 'name':
-            return 'PGMMV Coordinates Plugin';
-          case 'description':
-            return 'Utilities for working with object coordinates.';
-          case 'author':
-            return 'Tristan Bonsor <kidthales@agogpixel.com>';
-          case 'help':
-            return (
-              'This plugin provides utilities for working with 2D coordinates. Convert x and y\n' +
-              'values to/from camera space and world space; test an object for positioning\n' +
-              'within a tile or rectangle.\n' +
-              '\n' +
-              "'In Tile' link condition quick reference:\n" +
-              '|--------------|------------|------------|------------|------------|\n' +
-              '|   Location   | X-Axis Cmp | X-Axis Val | Y-Axis Cmp | Y-Axis Val |\n' +
-              '|--------------|------------|------------|------------|------------|\n' +
-              '| Top Left     |     <      |    0.5     |     <      |    0.5     |\n' +
-              '| Top          |    n/a     |    n/a     |     <      |    0.5     |\n' +
-              '| Top Right    |     >      |    0.5     |     <      |    0.5     |\n' +
-              '| Right        |     >      |    0.5     |    n/a     |    n/a     |\n' +
-              '| Bottom Right |     >      |    0.5     |     >      |    0.5     |\n' +
-              '| Bottom       |    n/a     |    n/a     |     >      |    0.5     |\n' +
-              '| Bottom Left  |     <      |    0.5     |     >      |    0.5     |\n' +
-              '| Left         |     <      |    0.5     |    n/a     |    n/a     |\n'
-            );
-          case 'parameter':
-            return [];
-          case 'internal':
-            return null;
-          case 'actionCommand':
-            return [cameraToWorldActionCommand, worldToCameraActionCommand];
-          case 'linkCondition':
-            return [
-              inRectLinkCondition,
-              onTileEdgeLinkCondition,
-              inTileLinkCondition,
-              inTileHorizontalLinkCondition,
-              inTileVerticalLinkCondition
-            ];
-          default:
-            break;
-        }
-      },
-      initialize: function () {
-        if (isEditor()) {
-          return;
-        }
-
-        if (!window.kt) {
-          window.kt = {};
-        }
-
-        window.kt.coordinates = {
-          cameraToWorld: cameraToWorld,
-          worldToCamera: worldToCamera,
-          inRect: inRect,
-          onTileEdge: onTileEdge,
-          inTile: inTile,
-          inTileHorizontal: inTileHorizontal,
-          inTileVertical: inTileVertical
-        };
-      },
-      finalize: function () {},
-      setParamValue: function () {},
-      setInternal: function () {},
-      call: function () {},
-      execActionCommand: function (actionCommandIndex, parameter, objectId, instanceId) {
-        /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
-        var actionCommand = plugin.getInfo('actionCommand')[actionCommandIndex],
-          /** @type {Record<number,import("type-fest").JsonValue>} */
-          np = normalizeParameters(parameter, actionCommand.parameter);
-
-        switch (actionCommand.id) {
-          case cameraToWorldActionCommand.id:
-            return cameraToWorld(
-              np[actionCommand.parameter[0].id],
-              np[actionCommand.parameter[1].id],
-              np[actionCommand.parameter[2].id],
-              np[actionCommand.parameter[3].id],
-              np[actionCommand.parameter[4].id],
-              np[actionCommand.parameter[5].id],
-              instanceId
-            );
-          case worldToCameraActionCommand.id:
-            return worldToCamera(
-              np[actionCommand.parameter[0].id],
-              np[actionCommand.parameter[1].id],
-              np[actionCommand.parameter[2].id],
-              np[actionCommand.parameter[3].id],
-              np[actionCommand.parameter[4].id],
-              np[actionCommand.parameter[5].id],
-              instanceId
-            );
-          default:
-            break;
-        }
-
-        return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
-      },
-      execLinkCondition: function (linkConditionIndex, parameter, objectId, instanceId) {
-        /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
-        var linkCondition = plugin.getInfo('linkCondition')[linkConditionIndex],
-          /** @type {Record<number,import("type-fest").JsonValue>} */
-          np = normalizeParameters(parameter, linkCondition.parameter);
-
-        switch (linkCondition.id) {
-          case inRectLinkCondition.id:
-            return inRect(
-              np[linkCondition.parameter[0].id],
-              np[linkCondition.parameter[1].id],
-              np[linkCondition.parameter[2].id],
-              np[linkCondition.parameter[3].id],
-              np[linkCondition.parameter[4].id],
-              instanceId
-            );
-          case onTileEdgeLinkCondition.id:
-            return onTileEdge(np[linkCondition.parameter[0].id], instanceId);
-          case inTileLinkCondition.id:
-            return inTile(
-              np[linkCondition.parameter[0].id],
-              np[linkCondition.parameter[1].id],
-              np[linkCondition.parameter[2].id],
-              np[linkCondition.parameter[3].id],
-              np[linkCondition.parameter[4].id],
-              instanceId
-            );
-          case inTileHorizontalLinkCondition.id:
-            return inTileHorizontal(
-              np[linkCondition.parameter[0].id],
-              np[linkCondition.parameter[1].id],
-              np[linkCondition.parameter[2].id],
-              instanceId
-            );
-          case inTileVerticalLinkCondition.id:
-            return inTileVertical(
-              np[linkCondition.parameter[0].id],
-              np[linkCondition.parameter[1].id],
-              np[linkCondition.parameter[2].id],
-              instanceId
-            );
-          default:
-            break;
-        }
-
-        return false;
+    setLocale: function () {},
+    getInfo: function (category) {
+      switch (category) {
+        case 'name':
+          return 'PGMMV Coordinates Plugin';
+        case 'description':
+          return 'Utilities for working with object coordinates.';
+        case 'author':
+          return 'Tristan Bonsor <kidthales@agogpixel.com>';
+        case 'help':
+          return (
+            'This plugin provides utilities for working with 2D coordinates. Convert x and y\n' +
+            'values to/from camera space and world space; test an object for positioning\n' +
+            'within a tile or rectangle.\n' +
+            '\n' +
+            "'In Tile' link condition quick reference:\n" +
+            '|--------------|------------|------------|------------|------------|\n' +
+            '|   Location   | X-Axis Cmp | X-Axis Val | Y-Axis Cmp | Y-Axis Val |\n' +
+            '|--------------|------------|------------|------------|------------|\n' +
+            '| Top Left     |     <      |    0.5     |     <      |    0.5     |\n' +
+            '| Top          |    n/a     |    n/a     |     <      |    0.5     |\n' +
+            '| Top Right    |     >      |    0.5     |     <      |    0.5     |\n' +
+            '| Right        |     >      |    0.5     |    n/a     |    n/a     |\n' +
+            '| Bottom Right |     >      |    0.5     |     >      |    0.5     |\n' +
+            '| Bottom       |    n/a     |    n/a     |     >      |    0.5     |\n' +
+            '| Bottom Left  |     <      |    0.5     |     >      |    0.5     |\n' +
+            '| Left         |     <      |    0.5     |    n/a     |    n/a     |\n'
+          );
+        case 'parameter':
+          return [];
+        case 'internal':
+          return null;
+        case 'actionCommand':
+          return [cameraToWorldActionCommand, worldToCameraActionCommand];
+        case 'linkCondition':
+          return [
+            inRectLinkCondition,
+            onTileEdgeLinkCondition,
+            inTileLinkCondition,
+            inTileHorizontalLinkCondition,
+            inTileVerticalLinkCondition
+          ];
+        default:
+          break;
       }
     },
-    /** @const */
-    kAxisX = 0,
+    initialize: function () {
+      if (isEditor()) {
+        return;
+      }
+
+      if (!window.kt) {
+        window.kt = {};
+      }
+
+      window.kt.coordinates = {
+        cameraToWorld: cameraToWorld,
+        worldToCamera: worldToCamera,
+        inRect: inRect,
+        onTileEdge: onTileEdge,
+        inTile: inTile,
+        inTileHorizontal: inTileHorizontal,
+        inTileVertical: inTileVertical
+      };
+    },
+    finalize: function () {},
+    setParamValue: function () {},
+    setInternal: function () {},
+    call: function () {},
+    execActionCommand: function (actionCommandIndex, parameter, objectId, instanceId) {
+      /** @type {AgtkActionCommand} */
+      var actionCommand = /** @type {AgtkActionCommandList} */ (plugin.getInfo('actionCommand'))[actionCommandIndex],
+        /** @type {Record<number, JsonValue>} */
+        np = normalizeParameters(parameter, actionCommand.parameter);
+
+      switch (actionCommand.id) {
+        case cameraToWorldActionCommand.id:
+          return cameraToWorld(
+            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[0].id]),
+            /** @type {number} */ (np[actionCommand.parameter[1].id]),
+            /** @type {number} */ (np[actionCommand.parameter[2].id]),
+            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[3].id]),
+            /** @type {number} */ (np[actionCommand.parameter[4].id]),
+            /** @type {number} */ (np[actionCommand.parameter[5].id]),
+            instanceId
+          );
+        case worldToCameraActionCommand.id:
+          return worldToCamera(
+            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[0].id]),
+            /** @type {number} */ (np[actionCommand.parameter[1].id]),
+            /** @type {number} */ (np[actionCommand.parameter[2].id]),
+            /** @type {SwitchVariableObjectId} */ (np[actionCommand.parameter[3].id]),
+            /** @type {number} */ (np[actionCommand.parameter[4].id]),
+            /** @type {number} */ (np[actionCommand.parameter[5].id]),
+            instanceId
+          );
+        default:
+          break;
+      }
+
+      return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
+    },
+    execLinkCondition: function (linkConditionIndex, parameter, objectId, instanceId) {
+      /** @type {AgtkLinkCondition} */
+      var linkCondition = /** @type {AgtkLinkConditionList} */ (plugin.getInfo('linkCondition'))[linkConditionIndex],
+        /** @type {Record<number, JsonValue>} */
+        np = normalizeParameters(parameter, linkCondition.parameter);
+
+      switch (linkCondition.id) {
+        case inRectLinkCondition.id:
+          return inRect(
+            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
+            /** @type {number} */ (np[linkCondition.parameter[1].id]),
+            /** @type {number} */ (np[linkCondition.parameter[2].id]),
+            /** @type {number} */ (np[linkCondition.parameter[3].id]),
+            /** @type {number} */ (np[linkCondition.parameter[4].id]),
+            instanceId
+          );
+        case onTileEdgeLinkCondition.id:
+          return onTileEdge(/** @type {number} */ (np[linkCondition.parameter[0].id]), instanceId);
+        case inTileLinkCondition.id:
+          return inTile(
+            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
+            /** @type {number} */ (np[linkCondition.parameter[1].id]),
+            /** @type {number} */ (np[linkCondition.parameter[2].id]),
+            /** @type {number} */ (np[linkCondition.parameter[3].id]),
+            /** @type {number} */ (np[linkCondition.parameter[4].id]),
+            instanceId
+          );
+        case inTileHorizontalLinkCondition.id:
+          return inTileHorizontal(
+            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
+            /** @type {number} */ (np[linkCondition.parameter[1].id]),
+            /** @type {number} */ (np[linkCondition.parameter[2].id]),
+            instanceId
+          );
+        case inTileVerticalLinkCondition.id:
+          return inTileVertical(
+            /** @type {SwitchVariableObjectId} */ (np[linkCondition.parameter[0].id]),
+            /** @type {number} */ (np[linkCondition.parameter[1].id]),
+            /** @type {number} */ (np[linkCondition.parameter[2].id]),
+            instanceId
+          );
+        default:
+          break;
+      }
+
+      return false;
+    }
+  };
+
+  /** @const */
+  var kAxisX = 0,
     /** @const */
     kAxisY = 1,
     /** @const */
@@ -179,9 +198,10 @@
     /** @const */
     kGt = 4,
     /** @const */
-    kNot = 5,
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
-    cameraToWorldActionCommand = {
+    kNot = 5;
+
+  /** @type {AgtkActionCommand} */
+  var cameraToWorldActionCommand = {
       id: 0,
       name: 'Camera to World [PGMMV Coordinates Plugin]',
       description: 'Convert variables from camera to world coordinates.',
@@ -234,7 +254,7 @@
         }
       ]
     },
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkActionCommand} */
+    /** @type {AgtkActionCommand} */
     worldToCameraActionCommand = {
       id: 1,
       name: 'World to Camera [PGMMV Coordinates Plugin]',
@@ -288,7 +308,7 @@
         }
       ]
     },
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    /** @type {AgtkLinkCondition} */
     inRectLinkCondition = {
       id: 0,
       name: 'In Rectangle [PGMMV Coordinates Plugin]',
@@ -336,7 +356,7 @@
         }
       ]
     },
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    /** @type {AgtkLinkCondition} */
     onTileEdgeLinkCondition = {
       id: 1,
       name: 'On Tile Edge [PGMMV Coordinates Plugin]',
@@ -356,7 +376,7 @@
         }
       ]
     },
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    /** @type {AgtkLinkCondition} */
     inTileLinkCondition = {
       id: 2,
       name: 'In Tile [PGMMV Coordinates Plugin]',
@@ -416,7 +436,7 @@
         }
       ]
     },
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    /** @type {AgtkLinkCondition} */
     inTileHorizontalLinkCondition = {
       id: 3,
       name: 'In Tile (Horizontal) [PGMMV Coordinates Plugin]',
@@ -454,7 +474,7 @@
         }
       ]
     },
-    /** @type {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkLinkCondition} */
+    /** @type {AgtkLinkCondition} */
     inTileVerticalLinkCondition = {
       id: 4,
       name: 'In Tile (Vertical) [PGMMV Coordinates Plugin]',
@@ -491,699 +511,599 @@
           defaultValue: -1
         }
       ]
-    },
-    /**
-     * @param inputVariableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param inputXVariableId {number}
-     * @param inputYVariableId {number}
-     * @param outputVariableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param outputXVariableId {number}
-     * @param outputYVariableId {number}
-     * @param instanceId {number}
-     * @returns {import("pgmmv-types/lib/agtk/constants/action-commands/command-behavior").AgtkCommandBehavior['CommandBehaviorNext']}
-     */
-    cameraToWorld = function (
-      inputVariableObjectId,
-      inputXVariableId,
-      inputYVariableId,
-      outputVariableObjectId,
-      outputXVariableId,
-      outputYVariableId,
-      instanceId
-    ) {
-      var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
-        inputSource = resolveSwitchVariableObject(inputVariableObjectId, instanceId),
-        outputSource = resolveSwitchVariableObject(outputVariableObjectId, instanceId),
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        inputXVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        inputYVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        outputXVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        outputYVariable,
-        /** @type {import("pgmmv-types/lib/cc/rect").CCRect} */
-        cameraRect;
+    };
 
-      if (inputSource === Agtk.constants.actionCommands.UnsetObject) {
-        logWarning('camera to world: unset input variable source');
-      } else if (inputXVariableId < 1) {
-        logWarning('camera to world: invalid input x variable ID');
-      } else if (inputYVariableId < 1) {
-        logWarning('camera to world: invalid input y variable ID');
-      } else if (outputSource === Agtk.constants.actionCommands.UnsetObject) {
-        logWarning('camera to world: unset output variable source');
-      } else if (outputXVariableId < 1) {
-        logWarning('camera to world: invalid output x variable ID');
-      } else if (outputYVariableId < 1) {
-        logWarning('camera to world: invalid output y variable ID');
+  /**
+   * @param {SwitchVariableObjectId} inputVariableObjectId
+   * @param {number} inputXVariableId
+   * @param {number} inputYVariableId
+   * @param {SwitchVariableObjectId} outputVariableObjectId
+   * @param {number} outputXVariableId
+   * @param {number} outputYVariableId
+   * @param {number} instanceId
+   * @returns {AgtkCommandBehaviorNext}
+   */
+  var cameraToWorld = function (
+    inputVariableObjectId,
+    inputXVariableId,
+    inputYVariableId,
+    outputVariableObjectId,
+    outputXVariableId,
+    outputYVariableId,
+    instanceId
+  ) {
+    var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
+      inputSource = resolveSwitchVariableObject(inputVariableObjectId, instanceId),
+      outputSource = resolveSwitchVariableObject(outputVariableObjectId, instanceId),
+      /** @type {AgtkVariable} */
+      inputXVariable,
+      /** @type {AgtkVariable} */
+      inputYVariable,
+      /** @type {AgtkVariable} */
+      outputXVariable,
+      /** @type {AgtkVariable} */
+      outputYVariable,
+      /** @type {CCRect} */
+      cameraRect;
+
+    if (inputSource === Agtk.constants.actionCommands.UnsetObject) {
+      logWarning('camera to world: unset input variable source');
+    } else if (inputXVariableId < 1) {
+      logWarning('camera to world: invalid input x variable ID');
+    } else if (inputYVariableId < 1) {
+      logWarning('camera to world: invalid input y variable ID');
+    } else if (outputSource === Agtk.constants.actionCommands.UnsetObject) {
+      logWarning('camera to world: unset output variable source');
+    } else if (outputXVariableId < 1) {
+      logWarning('camera to world: invalid output x variable ID');
+    } else if (outputYVariableId < 1) {
+      logWarning('camera to world: invalid output y variable ID');
+    } else {
+      if (inputSource === projectCommon) {
+        inputXVariable = Agtk.variables.get(inputXVariableId);
+        inputYVariable = Agtk.variables.get(inputYVariableId);
       } else {
-        if (inputSource === projectCommon) {
-          inputXVariable = Agtk.variables.get(inputXVariableId);
-          inputYVariable = Agtk.variables.get(inputYVariableId);
-        } else {
-          inputXVariable = inputSource.variables.get(inputXVariableId);
-          inputYVariable = inputSource.variables.get(inputYVariableId);
-        }
-
-        if (outputSource === projectCommon) {
-          outputXVariable = Agtk.variables.get(outputXVariableId);
-          outputYVariable = Agtk.variables.get(outputYVariableId);
-        } else {
-          outputXVariable = outputSource.variables.get(outputXVariableId);
-          outputYVariable = outputSource.variables.get(outputYVariableId);
-        }
-
-        if (!inputXVariable) {
-          logWarning('camera to world: input x variable not found');
-        } else if (!inputYVariable) {
-          logWarning('camera to world: input y variable not found');
-        } else if (!outputXVariable) {
-          logWarning('camera to world: output x variable not found');
-        } else if (!outputYVariable) {
-          logWarning('camera to world: output y variable not found');
-        } else {
-          cameraRect = getCameraRect();
-          outputXVariable.setValue(cameraRect.x + inputXVariable.getValue());
-          outputYVariable.setValue(cameraRect.y + inputYVariable.getValue());
-        }
+        inputXVariable = inputSource.variables.get(inputXVariableId);
+        inputYVariable = inputSource.variables.get(inputYVariableId);
       }
 
-      return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
-    },
-    /**
-     * @param inputVariableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param inputXVariableId {number}
-     * @param inputYVariableId {number}
-     * @param outputVariableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param outputXVariableId {number}
-     * @param outputYVariableId {number}
-     * @param instanceId {number}
-     * @returns {import("pgmmv-types/lib/agtk/constants/action-commands/command-behavior").AgtkCommandBehavior['CommandBehaviorNext']}
-     */
-    worldToCamera = function (
-      inputVariableObjectId,
-      inputXVariableId,
-      inputYVariableId,
-      outputVariableObjectId,
-      outputXVariableId,
-      outputYVariableId,
-      instanceId
-    ) {
-      var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
-        inputSource = resolveSwitchVariableObject(inputVariableObjectId, instanceId),
-        outputSource = resolveSwitchVariableObject(outputVariableObjectId, instanceId),
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        inputXVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        inputYVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        outputXVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        outputYVariable,
-        /** @type {import("pgmmv-types/lib/cc/rect").CCRect} */
-        cameraRect;
-
-      if (inputSource === Agtk.constants.actionCommands.UnsetObject) {
-        logWarning('world to camera: unset input variable source');
-      } else if (inputXVariableId < 1) {
-        logWarning('world to camera: invalid input x variable ID');
-      } else if (inputYVariableId < 1) {
-        logWarning('world to camera: invalid input y variable ID');
-      } else if (outputSource === Agtk.constants.actionCommands.UnsetObject) {
-        logWarning('world to camera: unset output variable source');
-      } else if (outputXVariableId < 1) {
-        logWarning('world to camera: invalid output x variable ID');
-      } else if (outputYVariableId < 1) {
-        logWarning('world to camera: invalid output y variable ID');
+      if (outputSource === projectCommon) {
+        outputXVariable = Agtk.variables.get(outputXVariableId);
+        outputYVariable = Agtk.variables.get(outputYVariableId);
       } else {
-        if (inputSource === projectCommon) {
-          inputXVariable = Agtk.variables.get(inputXVariableId);
-          inputYVariable = Agtk.variables.get(inputYVariableId);
-        } else {
-          inputXVariable = inputSource.variables.get(inputXVariableId);
-          inputYVariable = inputSource.variables.get(inputYVariableId);
-        }
-
-        if (outputSource === projectCommon) {
-          outputXVariable = Agtk.variables.get(outputXVariableId);
-          outputYVariable = Agtk.variables.get(outputYVariableId);
-        } else {
-          outputXVariable = outputSource.variables.get(outputXVariableId);
-          outputYVariable = outputSource.variables.get(outputYVariableId);
-        }
-
-        if (!inputXVariable) {
-          logWarning('world to camera: input x variable not found');
-        } else if (!inputYVariable) {
-          logWarning('world to camera: input y variable not found');
-        } else if (!outputXVariable) {
-          logWarning('world to camera: output x variable not found');
-        } else if (!outputYVariable) {
-          logWarning('world to camera: output y variable not found');
-        } else {
-          cameraRect = getCameraRect();
-          outputXVariable.setValue(inputXVariable.getValue() - cameraRect.x);
-          outputYVariable.setValue(inputYVariable.getValue() - cameraRect.y);
-        }
+        outputXVariable = outputSource.variables.get(outputXVariableId);
+        outputYVariable = outputSource.variables.get(outputYVariableId);
       }
 
-      return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
-    },
-    /**
-     * @param variableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param xVariableId {number}
-     * @param yVariableId {number}
-     * @param widthVariableId {number}
-     * @param heightVariableId {number}
-     * @param instanceId {number}
-     * @returns {boolean}
-     */
-    inRect = function (variableObjectId, xVariableId, yVariableId, widthVariableId, heightVariableId, instanceId) {
-      var source = resolveSwitchVariableObject(variableObjectId, instanceId),
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        xVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        yVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        widthVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        heightVariable,
-        /** @type {import("pgmmv-types/lib/agtk/object-instances/object-instance").AgtkObjectInstance} */
-        objectInstance;
+      if (!inputXVariable) {
+        logWarning('camera to world: input x variable not found');
+      } else if (!inputYVariable) {
+        logWarning('camera to world: input y variable not found');
+      } else if (!outputXVariable) {
+        logWarning('camera to world: output x variable not found');
+      } else if (!outputYVariable) {
+        logWarning('camera to world: output y variable not found');
+      } else {
+        cameraRect = getCameraRect();
+        outputXVariable.setValue(cameraRect.x + inputXVariable.getValue());
+        outputYVariable.setValue(cameraRect.y + inputYVariable.getValue());
+      }
+    }
 
+    return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
+  };
+
+  /**
+   * @param {SwitchVariableObjectId} inputVariableObjectId
+   * @param {number} inputXVariableId
+   * @param {number} inputYVariableId
+   * @param {SwitchVariableObjectId} outputVariableObjectId
+   * @param {number} outputXVariableId
+   * @param {number} outputYVariableId
+   * @param {number} instanceId
+   * @returns {AgtkCommandBehaviorNext}
+   */
+  var worldToCamera = function (
+    inputVariableObjectId,
+    inputXVariableId,
+    inputYVariableId,
+    outputVariableObjectId,
+    outputXVariableId,
+    outputYVariableId,
+    instanceId
+  ) {
+    var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
+      inputSource = resolveSwitchVariableObject(inputVariableObjectId, instanceId),
+      outputSource = resolveSwitchVariableObject(outputVariableObjectId, instanceId),
+      /** @type {AgtkVariable} */
+      inputXVariable,
+      /** @type {AgtkVariable} */
+      inputYVariable,
+      /** @type {AgtkVariable} */
+      outputXVariable,
+      /** @type {AgtkVariable} */
+      outputYVariable,
+      /** @type {CCRect} */
+      cameraRect;
+
+    if (inputSource === Agtk.constants.actionCommands.UnsetObject) {
+      logWarning('world to camera: unset input variable source');
+    } else if (inputXVariableId < 1) {
+      logWarning('world to camera: invalid input x variable ID');
+    } else if (inputYVariableId < 1) {
+      logWarning('world to camera: invalid input y variable ID');
+    } else if (outputSource === Agtk.constants.actionCommands.UnsetObject) {
+      logWarning('world to camera: unset output variable source');
+    } else if (outputXVariableId < 1) {
+      logWarning('world to camera: invalid output x variable ID');
+    } else if (outputYVariableId < 1) {
+      logWarning('world to camera: invalid output y variable ID');
+    } else {
+      if (inputSource === projectCommon) {
+        inputXVariable = Agtk.variables.get(inputXVariableId);
+        inputYVariable = Agtk.variables.get(inputYVariableId);
+      } else {
+        inputXVariable = inputSource.variables.get(inputXVariableId);
+        inputYVariable = inputSource.variables.get(inputYVariableId);
+      }
+
+      if (outputSource === projectCommon) {
+        outputXVariable = Agtk.variables.get(outputXVariableId);
+        outputYVariable = Agtk.variables.get(outputYVariableId);
+      } else {
+        outputXVariable = outputSource.variables.get(outputXVariableId);
+        outputYVariable = outputSource.variables.get(outputYVariableId);
+      }
+
+      if (!inputXVariable) {
+        logWarning('world to camera: input x variable not found');
+      } else if (!inputYVariable) {
+        logWarning('world to camera: input y variable not found');
+      } else if (!outputXVariable) {
+        logWarning('world to camera: output x variable not found');
+      } else if (!outputYVariable) {
+        logWarning('world to camera: output y variable not found');
+      } else {
+        cameraRect = getCameraRect();
+        outputXVariable.setValue(inputXVariable.getValue() - cameraRect.x);
+        outputYVariable.setValue(inputYVariable.getValue() - cameraRect.y);
+      }
+    }
+
+    return Agtk.constants.actionCommands.commandBehavior.CommandBehaviorNext;
+  };
+
+  /**
+   * @param {SwitchVariableObjectId} variableObjectId
+   * @param {number} xVariableId
+   * @param {number} yVariableId
+   * @param {number} widthVariableId
+   * @param {number} heightVariableId
+   * @param {number} instanceId
+   * @returns {boolean}
+   */
+  var inRect = function (variableObjectId, xVariableId, yVariableId, widthVariableId, heightVariableId, instanceId) {
+    var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+      /** @type {AgtkVariable} */
+      xVariable,
+      /** @type {AgtkVariable} */
+      yVariable,
+      /** @type {AgtkVariable} */
+      widthVariable,
+      /** @type {AgtkVariable} */
+      heightVariable,
+      /** @type {AgtkObjectInstance} */
+      objectInstance;
+
+    if (source === Agtk.constants.actionCommands.UnsetObject) {
+      logWarning('in rectangle: unset variable source');
+    } else if (xVariableId < 1) {
+      logWarning('in rectangle: invalid x variable ID');
+    } else if (yVariableId < 1) {
+      logWarning('in rectangle: invalid y variable ID');
+    } else if (widthVariableId < 1) {
+      logWarning('in rectangle: invalid width variable ID');
+    } else if (heightVariableId < 1) {
+      logWarning('in rectangle: invalid height variable ID');
+    } else {
+      if (source === Agtk.constants.switchVariableObjects.ProjectCommon) {
+        xVariable = Agtk.variables.get(xVariableId);
+        yVariable = Agtk.variables.get(yVariableId);
+        widthVariable = Agtk.variables.get(widthVariableId);
+        heightVariable = Agtk.variables.get(heightVariableId);
+      } else {
+        xVariable = source.variables.get(xVariableId);
+        yVariable = source.variables.get(yVariableId);
+        widthVariable = source.variables.get(widthVariableId);
+        heightVariable = source.variables.get(heightVariableId);
+      }
+
+      if (!xVariable) {
+        logWarning('in rectangle: x variable not found');
+      } else if (!yVariable) {
+        logWarning('in rectangle: y variable not found');
+      } else if (!widthVariable) {
+        logWarning('in rectangle: width variable not found');
+      } else if (!heightVariable) {
+        logWarning('in rectangle: height variable not found');
+      } else {
+        objectInstance = Agtk.objectInstances.get(instanceId);
+
+        return cc.rectContainsPoint(
+          cc.rect(xVariable.getValue(), yVariable.getValue(), widthVariable.getValue(), heightVariable.getValue()),
+          cc.p(
+            objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
+            objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue()
+          )
+        );
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * @param {number} axisCustomId
+   * @param {number} instanceId
+   * @returns {boolean}
+   */
+  var onTileEdge = function (axisCustomId, instanceId) {
+    var objectInstance = Agtk.objectInstances.get(instanceId);
+
+    switch (axisCustomId) {
+      case kAxisX:
+        return (
+          objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth === 0
+        );
+      case kAxisY:
+        return (
+          objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight === 0
+        );
+      case kAxisBoth:
+      default:
+        break;
+    }
+
+    return (
+      objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth === 0 &&
+      objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight === 0
+    );
+  };
+
+  /**
+   * @param {SwitchVariableObjectId} variableObjectId
+   * @param {number} comparisonXCustomId
+   * @param {number} originXVariableId
+   * @param {number} comparisonYCustomId
+   * @param {number} originYVariableId
+   * @param {number} instanceId
+   * @returns {boolean}
+   */
+  var inTile = function (
+    variableObjectId,
+    comparisonXCustomId,
+    originXVariableId,
+    comparisonYCustomId,
+    originYVariableId,
+    instanceId
+  ) {
+    var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
+      source = resolveSwitchVariableObject(variableObjectId, instanceId),
+      /** @type {AgtkVariable} */
+      originXVariable,
+      /** @type {AgtkVariable} */
+      originYVariable,
+      /** @type {number | undefined} */
+      originX = undefined,
+      /** @type {number | undefined} */
+      originY = undefined,
+      objectInstance = Agtk.objectInstances.get(instanceId),
+      x = objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
+      /** @type {number} */
+      y,
+      tileWidth = Agtk.settings.tileWidth,
+      /** @type {number} */
+      tileHeight,
+      /** @type {number} */
+      compareX,
+      /** @type {number} */
+      compareY,
+      /** @type {boolean} */
+      testX;
+
+    if (source === Agtk.constants.actionCommands.UnsetObject) {
+      originX = originY = 0.5;
+    } else {
+      if (originXVariableId < 1) {
+        originX = 0.5;
+      }
+
+      if (originYVariableId < 1) {
+        originY = 0.5;
+      }
+    }
+
+    if (originX === undefined) {
       if (source === Agtk.constants.actionCommands.UnsetObject) {
-        logWarning('in rectangle: unset variable source');
-      } else if (xVariableId < 1) {
-        logWarning('in rectangle: invalid x variable ID');
-      } else if (yVariableId < 1) {
-        logWarning('in rectangle: invalid y variable ID');
-      } else if (widthVariableId < 1) {
-        logWarning('in rectangle: invalid width variable ID');
-      } else if (heightVariableId < 1) {
-        logWarning('in rectangle: invalid height variable ID');
+        originX = 0.5;
       } else {
-        if (source === Agtk.constants.switchVariableObjects.ProjectCommon) {
-          xVariable = Agtk.variables.get(xVariableId);
-          yVariable = Agtk.variables.get(yVariableId);
-          widthVariable = Agtk.variables.get(widthVariableId);
-          heightVariable = Agtk.variables.get(heightVariableId);
-        } else {
-          xVariable = source.variables.get(xVariableId);
-          yVariable = source.variables.get(yVariableId);
-          widthVariable = source.variables.get(widthVariableId);
-          heightVariable = source.variables.get(heightVariableId);
-        }
-
-        if (!xVariable) {
-          logWarning('in rectangle: x variable not found');
-        } else if (!yVariable) {
-          logWarning('in rectangle: y variable not found');
-        } else if (!widthVariable) {
-          logWarning('in rectangle: width variable not found');
-        } else if (!heightVariable) {
-          logWarning('in rectangle: height variable not found');
-        } else {
-          objectInstance = Agtk.objectInstances.get(instanceId);
-
-          return cc.rectContainsPoint(
-            cc.rect(xVariable.getValue(), yVariable.getValue(), widthVariable.getValue(), heightVariable.getValue()),
-            cc.p(
-              objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
-              objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue()
-            )
-          );
-        }
-      }
-
-      return false;
-    },
-    /**
-     * @param axisCustomId {number}
-     * @param instanceId {number}
-     * @returns {boolean}
-     */
-    onTileEdge = function (axisCustomId, instanceId) {
-      var objectInstance = Agtk.objectInstances.get(instanceId);
-
-      switch (axisCustomId) {
-        case kAxisX:
-          return (
-            objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth ===
-            0
-          );
-        case kAxisY:
-          return (
-            objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight ===
-            0
-          );
-        case kAxisBoth:
-        default:
-          break;
-      }
-
-      return (
-        objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue() % Agtk.settings.tileWidth === 0 &&
-        objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue() % Agtk.settings.tileHeight === 0
-      );
-    },
-    /**
-     * @param variableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param comparisonXCustomId {number}
-     * @param originXVariableId {number}
-     * @param comparisonYCustomId {number}
-     * @param originYVariableId {number}
-     * @param instanceId {number}
-     * @returns {boolean}
-     */
-    inTile = function (
-      variableObjectId,
-      comparisonXCustomId,
-      originXVariableId,
-      comparisonYCustomId,
-      originYVariableId,
-      instanceId
-    ) {
-      var projectCommon = Agtk.constants.switchVariableObjects.ProjectCommon,
-        source = resolveSwitchVariableObject(variableObjectId, instanceId),
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        originXVariable,
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        originYVariable,
-        /** @type {number} */
-        originX,
-        /** @type {number} */
-        originY,
-        objectInstance = Agtk.objectInstances.get(instanceId),
-        x = objectInstance.variables.get(Agtk.constants.objects.variables.XId).getValue(),
-        /** @type {number} */
-        y,
-        tileWidth = Agtk.settings.tileWidth,
-        /** @type {number} */
-        tileHeight,
-        /** @type {number} */
-        compareX,
-        /** @type {number} */
-        compareY,
-        /** @type {boolean} */
-        testX;
-
-      if (source === Agtk.constants.actionCommands.UnsetObject) {
-        originX = originY = 0.5;
-      } else {
-        if (originXVariableId < 1) {
-          originX = 0.5;
-        }
-
-        if (originYVariableId < 1) {
-          originY = 0.5;
-        }
-      }
-
-      if (originX === undefined) {
         originXVariable = (source === projectCommon ? Agtk : source).variables.get(originXVariableId);
         originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
       }
+    }
 
-      compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
+    compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
 
-      switch (comparisonXCustomId) {
-        case kLt:
-          testX = x < compareX;
-          break;
-        case kLte:
-          testX = x <= compareX;
-          break;
-        case kGte:
-          testX = x >= compareX;
-          break;
-        case kGt:
-          testX = x > compareX;
-          break;
-        case kNot:
-          testX = x !== compareX;
-          break;
-        case kEq:
-        default:
-          testX = x === compareX;
-          break;
-      }
+    switch (comparisonXCustomId) {
+      case kLt:
+        testX = x < compareX;
+        break;
+      case kLte:
+        testX = x <= compareX;
+        break;
+      case kGte:
+        testX = x >= compareX;
+        break;
+      case kGt:
+        testX = x > compareX;
+        break;
+      case kNot:
+        testX = x !== compareX;
+        break;
+      case kEq:
+      default:
+        testX = x === compareX;
+        break;
+    }
 
-      if (!testX) {
-        return false;
-      }
+    if (!testX) {
+      return false;
+    }
 
-      if (originY === undefined) {
+    if (originY === undefined) {
+      if (source === Agtk.constants.actionCommands.UnsetObject) {
+        originY = 0.5;
+      } else {
         originYVariable = (source === projectCommon ? Agtk : source).variables.get(originYVariableId);
         originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
       }
+    }
 
-      y = objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue();
-      tileHeight = Agtk.settings.tileHeight;
-      compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
+    y = objectInstance.variables.get(Agtk.constants.objects.variables.YId).getValue();
+    tileHeight = Agtk.settings.tileHeight;
+    compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
 
-      switch (comparisonYCustomId) {
-        case kLt:
-          return y < compareY;
-        case kLte:
-          return y <= compareY;
-        case kGte:
-          return y >= compareY;
-        case kGt:
-          return y > compareY;
-        case kNot:
-          return y !== compareY;
-        case kEq:
-        default:
-          break;
+    switch (comparisonYCustomId) {
+      case kLt:
+        return y < compareY;
+      case kLte:
+        return y <= compareY;
+      case kGte:
+        return y >= compareY;
+      case kGt:
+        return y > compareY;
+      case kNot:
+        return y !== compareY;
+      case kEq:
+      default:
+        break;
+    }
+
+    return y === compareY;
+  };
+
+  /**
+   * @param {SwitchVariableObjectId} variableObjectId
+   * @param {number} comparisonXCustomId
+   * @param {number} originXVariableId
+   * @param {number} instanceId
+   * @returns {boolean}
+   */
+  var inTileHorizontal = function (variableObjectId, comparisonXCustomId, originXVariableId, instanceId) {
+    var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+      /** @type {AgtkVariable} */
+      originXVariable,
+      /** @type {number} */
+      originX,
+      x = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.XId).getValue(),
+      tileWidth = Agtk.settings.tileWidth,
+      /** @type {number} */
+      compareX;
+
+    if (source === Agtk.constants.actionCommands.UnsetObject || originXVariableId < 1) {
+      originX = 0.5;
+    } else {
+      originXVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
+        originXVariableId
+      );
+      originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
+    }
+
+    compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
+
+    switch (comparisonXCustomId) {
+      case kLt:
+        return x < compareX;
+      case kLte:
+        return x <= compareX;
+      case kGte:
+        return x >= compareX;
+      case kGt:
+        return x > compareX;
+      case kNot:
+        return x !== compareX;
+      case kEq:
+      default:
+        break;
+    }
+
+    return x === compareX;
+  };
+
+  /**
+   * @param {SwitchVariableObjectId} variableObjectId
+   * @param {number} comparisonYCustomId
+   * @param {number} originYVariableId
+   * @param {number} instanceId
+   * @returns {boolean}
+   */
+  var inTileVertical = function (variableObjectId, comparisonYCustomId, originYVariableId, instanceId) {
+    var source = resolveSwitchVariableObject(variableObjectId, instanceId),
+      /** @type {AgtkVariable} */
+      originYVariable,
+      /** @type {number} */
+      originY,
+      y = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.YId).getValue(),
+      tileHeight = Agtk.settings.tileHeight,
+      /** @type {number} */
+      compareY;
+
+    if (source === Agtk.constants.actionCommands.UnsetObject || originYVariableId < 1) {
+      originY = 0.5;
+    } else {
+      originYVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
+        originYVariableId
+      );
+      originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
+    }
+
+    compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
+
+    switch (comparisonYCustomId) {
+      case kLt:
+        return y < compareY;
+      case kLte:
+        return y <= compareY;
+      case kGte:
+        return y >= compareY;
+      case kGt:
+        return y > compareY;
+      case kNot:
+        return y !== compareY;
+      case kEq:
+      default:
+        break;
+    }
+
+    return y === compareY;
+  };
+
+  /** @type {() => CCRect} */
+  var getCameraRect = function () {
+    var scene = Agtk.sceneInstances.getCurrent(),
+      layer = scene.getLayerByIndex(0),
+      cameraTargetPosition = scene.getCurrentCameraTargetPos(),
+      cameraScale = scene.getCurrentCameraDisplayScale(),
+      cameraScaledWidth = Math.floor(Agtk.settings.screenWidth / cameraScale.x),
+      cameraScaledHeight = Math.floor(Agtk.settings.screenHeight / cameraScale.y),
+      /** @type {number} */
+      cameraLeft,
+      /** @type {number} */
+      cameraTop;
+
+    if (cameraScaledWidth > layer.width) {
+      cameraLeft = Math.floor((layer.width - cameraScaledWidth) / 2);
+    } else {
+      cameraLeft = cameraTargetPosition.x - Math.floor(cameraScaledWidth / 2);
+
+      if (cameraLeft < 0) {
+        cameraLeft = 0;
+      } else if (cameraLeft > layer.width - cameraScaledWidth) {
+        cameraLeft = layer.width - cameraScaledWidth;
       }
+    }
 
-      return y === compareY;
-    },
-    /**
-     * @param variableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param comparisonXCustomId {number}
-     * @param originXVariableId {number}
-     * @param instanceId {number}
-     * @returns {boolean}
-     */
-    inTileHorizontal = function (variableObjectId, comparisonXCustomId, originXVariableId, instanceId) {
-      var source = resolveSwitchVariableObject(variableObjectId, instanceId),
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        originXVariable,
-        /** @type {number} */
-        originX,
-        x = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.XId).getValue(),
-        tileWidth = Agtk.settings.tileWidth,
-        /** @type {number} */
-        compareX;
+    if (cameraScaledHeight > layer.height) {
+      cameraTop = Math.floor((layer.height - cameraScaledHeight) / 2);
+    } else {
+      cameraTop = cameraTargetPosition.y - Math.floor(cameraScaledHeight / 2);
 
-      if (source === Agtk.constants.actionCommands.UnsetObject || originXVariableId < 1) {
-        originX = 0.5;
-      } else {
-        originXVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
-          originXVariableId
-        );
-        originX = !originXVariable ? 0.5 : cc.clampf(originXVariable.getValue(), 0, 1);
+      if (cameraTop < 0) {
+        cameraTop = 0;
+      } else if (cameraTop > layer.height - cameraScaledHeight) {
+        cameraTop = layer.height - cameraScaledHeight;
       }
+    }
 
-      compareX = Math.floor(x / tileWidth) * tileWidth + originX * tileWidth;
+    return cc.rect(cameraLeft, cameraTop, cameraScaledWidth, cameraScaledHeight);
+  };
 
-      switch (comparisonXCustomId) {
-        case kLt:
-          return x < compareX;
-        case kLte:
-          return x <= compareX;
-        case kGte:
-          return x >= compareX;
-        case kGt:
-          return x > compareX;
-        case kNot:
-          return x !== compareX;
-        case kEq:
-        default:
-          break;
-      }
+  /** @type {(msg: string) => void} */
+  var logWarning = function (msg) {
+    if (isEditor()) {
+      return;
+    }
 
-      return x === compareX;
-    },
-    /**
-     * @param variableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param comparisonYCustomId {number}
-     * @param originYVariableId {number}
-     * @param instanceId {number}
-     * @returns {boolean}
-     */
-    inTileVertical = function (variableObjectId, comparisonYCustomId, originYVariableId, instanceId) {
-      var source = resolveSwitchVariableObject(variableObjectId, instanceId),
-        /**
-         * @type {
-         *   import("pgmmv-types/lib/agtk/variables/variable").AgtkVariable |
-         *   import("pgmmv-types/lib/agtk/object-instances/object-instance/variables/variable").AgtkVariable
-         * }
-         */
-        originYVariable,
-        /** @type {number} */
-        originY,
-        y = Agtk.objectInstances.get(instanceId).variables.get(Agtk.constants.objects.variables.YId).getValue(),
-        tileHeight = Agtk.settings.tileHeight,
-        /** @type {number} */
-        compareY;
+    Agtk.log('[WARNING][' + plugin.getInfo('name') + '] ' + msg);
+  };
 
-      if (source === Agtk.constants.actionCommands.UnsetObject || originYVariableId < 1) {
-        originY = 0.5;
-      } else {
-        originYVariable = (source === Agtk.constants.switchVariableObjects.ProjectCommon ? Agtk : source).variables.get(
-          originYVariableId
-        );
-        originY = !originYVariable ? 0.5 : cc.clampf(originYVariable.getValue(), 0, 1);
-      }
+  /**
+   * @returns {boolean}
+   */
+  var isEditor = function () {
+    return !Agtk || typeof Agtk.log !== 'function';
+  };
 
-      compareY = Math.floor(y / tileHeight) * tileHeight + originY * tileHeight;
+  /**
+   * @param {AgtkParameterValue[]} paramValue Parameter values to normalize.
+   * @param {AgtkParameter[]} defaults Default parameter values available.
+   * @returns {Record<number, JsonValue>}
+   */
+  var normalizeParameters = function (paramValue, defaults) {
+    /** @type {Record<number, JsonValue>} */
+    var normalized = {},
+      /** @type {number} */
+      len = defaults.length,
+      /** @type {number} */
+      i = 0,
+      /** @type {AgtkParameter} */
+      d,
+      /** @type {AgtkParameterValue} */
+      pv;
 
-      switch (comparisonYCustomId) {
-        case kLt:
-          return y < compareY;
-        case kLte:
-          return y <= compareY;
-        case kGte:
-          return y >= compareY;
-        case kGt:
-          return y > compareY;
-        case kNot:
-          return y !== compareY;
-        case kEq:
-        default:
-          break;
-      }
+    for (; i < len; ++i) {
+      d = defaults[i];
+      normalized[d.id] = d.type === 'Json' ? JSON.stringify(d.defaultValue) : /** @type {JsonValue} */ (d.defaultValue);
+    }
 
-      return y === compareY;
-    },
-    /** @type {() => import("pgmmv-types/lib/cc/rect").CCRect} */
-    getCameraRect = function () {
-      var scene = Agtk.sceneInstances.getCurrent(),
-        layer = scene.getLayerByIndex(0),
-        cameraTargetPosition = scene.getCurrentCameraTargetPos(),
-        cameraScale = scene.getCurrentCameraDisplayScale(),
-        cameraScaledWidth = Math.floor(Agtk.settings.screenWidth / cameraScale.x),
-        cameraScaledHeight = Math.floor(Agtk.settings.screenHeight / cameraScale.y),
-        /** @type {number} */
-        cameraLeft,
-        /** @type {number} */
-        cameraTop;
+    len = paramValue.length;
 
-      if (cameraScaledWidth > layer.width) {
-        cameraLeft = Math.floor((layer.width - cameraScaledWidth) / 2);
-      } else {
-        cameraLeft = cameraTargetPosition.x - Math.floor(cameraScaledWidth / 2);
+    for (i = 0; i < len; ++i) {
+      pv = paramValue[i];
+      normalized[pv.id] = pv.value;
+    }
 
-        if (cameraLeft < 0) {
-          cameraLeft = 0;
-        } else if (cameraLeft > layer.width - cameraScaledWidth) {
-          cameraLeft = layer.width - cameraScaledWidth;
+    return normalized;
+  };
+
+  /**
+   * @param {SwitchVariableObjectId} switchVariableObjectId
+   * @param {number} instanceId
+   * @returns {AgtkObjectInstance | AgtkProjectCommon | AgtkUnsetObject}
+   */
+  var resolveSwitchVariableObject = function (switchVariableObjectId, instanceId) {
+    var instance = Agtk.objectInstances.get(instanceId),
+      pId;
+
+    switch (switchVariableObjectId) {
+      case Agtk.constants.switchVariableObjects.ProjectCommon:
+        return switchVariableObjectId;
+      case Agtk.constants.switchVariableObjects.SelfObject:
+        return instance;
+      case Agtk.constants.switchVariableObjects.ParentObject:
+        pId = instance.variables.get(Agtk.constants.objects.variables.ParentObjectInstanceIDId).getValue();
+
+        if (pId !== Agtk.constants.actionCommands.UnsetObject) {
+          return Agtk.objectInstances.get(pId);
         }
-      }
 
-      if (cameraScaledHeight > layer.height) {
-        cameraTop = Math.floor((layer.height - cameraScaledHeight) / 2);
-      } else {
-        cameraTop = cameraTargetPosition.y - Math.floor(cameraScaledHeight / 2);
+        break;
+      default:
+        break;
+    }
 
-        if (cameraTop < 0) {
-          cameraTop = 0;
-        } else if (cameraTop > layer.height - cameraScaledHeight) {
-          cameraTop = layer.height - cameraScaledHeight;
-        }
-      }
-
-      return cc.rect(cameraLeft, cameraTop, cameraScaledWidth, cameraScaledHeight);
-    },
-    /** @type {(string) => void} */
-    logWarning = function (msg) {
-      if (isEditor()) {
-        return;
-      }
-
-      Agtk.log('[WARNING][' + plugin.getInfo('name') + '] ' + msg);
-    },
-    /**
-     * @returns {boolean}
-     */
-    isEditor = function () {
-      return !Agtk || typeof Agtk.log !== 'function';
-    },
-    /**
-     * @param paramValue {import("pgmmv-types/lib/agtk/plugins/plugin").AgtkParameterValue[]} Parameter values to normalize.
-     * @param defaults {import("pgmmv-types/lib/agtk/plugins/plugin/parameter").AgtkParameter[]} Default parameter values available.
-     * @returns {Record<number, import("type-fest").JsonValue>}
-     */
-    normalizeParameters = function (paramValue, defaults) {
-      /** @type {Record<number,import("type-fest").JsonValue>} */
-      var normalized = {},
-        /** @type {number} */
-        len = defaults.length,
-        /** @type {number} */
-        i = 0,
-        /** @type {import("pgmmv-types/lib/agtk/plugins/plugin/parameter").AgtkParameter|import("pgmmv-types/lib/agtk/plugins/plugin").AgtkParameterValue} */
-        p;
-
-      for (; i < len; ++i) {
-        p = defaults[i];
-        normalized[p.id] = p.type === 'Json' ? JSON.stringify(p.defaultValue) : p.defaultValue;
-      }
-
-      len = paramValue.length;
-
-      for (i = 0; i < len; ++i) {
-        p = paramValue[i];
-        normalized[p.id] = p.value;
-      }
-
-      return normalized;
-    },
-    /**
-     * @param switchVariableObjectId {
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['SelfObject'] |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ParentObject']
-     * }
-     * @param instanceId {number}
-     * @returns {
-     *   import("pgmmv-types/lib/agtk/object-instances/object-instance").AgtkObjectInstance |
-     *   import("pgmmv-types/lib/agtk/constants/switch-variable-objects").AgtkSwitchVariableObjects['ProjectCommon'] |
-     *   import("pgmmv-types/lib/agtk/constants/action-commands").AgtkActionCommands['UnsetObject']
-     * }
-     */
-    resolveSwitchVariableObject = function (switchVariableObjectId, instanceId) {
-      var instance = Agtk.objectInstances.get(instanceId),
-        pId;
-
-      switch (switchVariableObjectId) {
-        case Agtk.constants.switchVariableObjects.ProjectCommon:
-          return switchVariableObjectId;
-        case Agtk.constants.switchVariableObjects.SelfObject:
-          return instance;
-        case Agtk.constants.switchVariableObjects.ParentObject:
-          pId = instance.variables.get(Agtk.constants.objects.variables.ParentObjectInstanceIDId).getValue();
-
-          if (pId !== Agtk.constants.actionCommands.UnsetObject) {
-            return Agtk.objectInstances.get(pId);
-          }
-
-          break;
-        default:
-          break;
-      }
-
-      return Agtk.constants.actionCommands.UnsetObject;
-    };
+    return Agtk.constants.actionCommands.UnsetObject;
+  };
 
   return plugin;
 })();
